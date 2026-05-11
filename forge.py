@@ -647,6 +647,83 @@ def gen_transport_sync_h(spec: dict) -> str:
     return "\n".join(L)
 
 
+def gen_processor_h(spec: dict) -> str:
+    prefix = spec["plugin"]["prefix"]
+    name = spec["plugin"]["name"]
+    L = []
+    L.append("#pragma once")
+    L.append("#include <JuceHeader.h>")
+    L.append('#include "core/BusLayout.h"')
+    L.append('#include "core/VoiceBank.h"')
+    L.append('#include "core/ParamLayout.h"')
+    L.append('#include "Sequencer.h"')
+    L.append("")
+    L.append(f"class {name}Processor : public juce::AudioProcessor")
+    L.append("{")
+    L.append("public:")
+    L.append(f"    {name}Processor();")
+    L.append(f"    ~{name}Processor() override = default;")
+    L.append("    void prepareToPlay(double sampleRate, int samplesPerBlock) override;")
+    L.append("    void releaseResources() override {}")
+    L.append("    bool isBusesLayoutSupported(const BusesLayout&) const override;")
+    L.append("    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;")
+    L.append("    juce::AudioProcessorEditor* createEditor() override;")
+    L.append("    bool hasEditor() const override { return true; }")
+    L.append('    const juce::String getName() const override { return JucePlugin_Name; }')
+    L.append("    bool acceptsMidi() const override { return true; }")
+    L.append("    bool producesMidi() const override { return false; }")
+    L.append("    bool isMidiEffect() const override { return false; }")
+    L.append("    double getTailLengthSeconds() const override { return 2.0; }")
+    L.append("    int getNumPrograms() override { return 1; }")
+    L.append("    int getCurrentProgram() override { return 0; }")
+    L.append("    void setCurrentProgram(int) override {}")
+    L.append('    const juce::String getProgramName(int) override { return {}; }')
+    L.append("    void changeProgramName(int, const juce::String&) override {}")
+    L.append("    void getStateInformation(juce::MemoryBlock&) override;")
+    L.append("    void setStateInformation(const void*, int) override;")
+    L.append("")
+    L.append("    juce::AudioProcessorValueTreeState apvts;")
+    L.append("    Sequencer sequencer;")
+    L.append("    VoiceBank voiceBank;")
+    L.append("    std::atomic<float> currentBpm { 120.0f };")
+    L.append("private:")
+    L.append(f"    std::array<int, Sequencer::NUM_CHANNELS> lastSteps;")
+    L.append("    int64_t prevBar = -1;")
+    L.append("    double currentSampleRate = 44100.0;")
+    L.append(f"    struct CrossoverState {{ float lpL = 0.0f, lpR = 0.0f; }};")
+    L.append(f"    std::array<CrossoverState, {prefix}Bus::COUNT> crossover {{}};")
+    L.append("    float crossoverAlpha = 0.04f;")
+    L.append(f"    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR({name}Processor)")
+    L.append("};")
+    L.append("")
+    return "\n".join(L)
+
+
+def gen_editor_h(spec: dict) -> str:
+    name = spec["plugin"]["name"]
+    L = []
+    L.append("#pragma once")
+    L.append("#include <JuceHeader.h>")
+    L.append(f'#include "PluginProcessor.h"')
+    L.append('#include "ui/SpaceLookAndFeel.h"')
+    L.append("")
+    L.append(f"class {name}Editor : public juce::AudioProcessorEditor")
+    L.append("{")
+    L.append("public:")
+    L.append(f"    explicit {name}Editor({name}Processor&);")
+    L.append(f"    ~{name}Editor() override;")
+    L.append("    void paint(juce::Graphics&) override;")
+    L.append("    void resized() override;")
+    L.append("private:")
+    L.append("    static constexpr int TITLE_H = 28;")
+    L.append(f"    {name}Processor& processorRef;")
+    L.append("    SpaceLookAndFeel spaceLnf;")
+    L.append(f"    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR({name}Editor)")
+    L.append("};")
+    L.append("")
+    return "\n".join(L)
+
+
 def gen_processor_cpp(spec: dict) -> str:
     prefix = spec["plugin"]["prefix"]
     name = spec["plugin"]["name"]
@@ -821,10 +898,14 @@ def generate(spec_path: str, output_dir: str):
         "src/core/MidiRouter.h": gen_midi_router(spec),
         "src/core/TransportSync.h": gen_transport_sync_h(spec),
         "src/Sequencer.h": gen_sequencer_h(spec),
+        "src/PluginProcessor.h": gen_processor_h(spec),
         "src/PluginProcessor.cpp": gen_processor_cpp(spec),
+        "src/PluginEditor.h": gen_editor_h(spec),
         "src/PluginEditor.cpp": gen_editor_cpp(spec),
         "src/ui/SpaceLookAndFeel.h": gen_look_and_feel(),
     }
+    if spec["features"].get("sequencer"):
+        files["src/ui/StepGrid.cpp"] = "// StepGrid stub — TODO\n#include <JuceHeader.h>\n"
 
     # Voices: try production DSP from dsplib, fall back to stub
     seen_classes = set()
