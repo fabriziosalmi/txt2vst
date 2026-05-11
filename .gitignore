@@ -3,3 +3,4 @@ build/
 *.o
 *.a
 /output/
+__pycache__/
