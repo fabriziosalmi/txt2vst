@@ -30,7 +30,13 @@ ARCHETYPE_MAP = {
     "bass303": "bass.h",
     "pad":     "pad.h",
     "lead":    "lead.h",
-    "pluck":   "pluck.h",
+    "pluck":    "pluck.h",
+    "organ":    "organ.h",
+    "fm_synth": "fm_synth.h",
+    "noise":    "noise.h",
+    "string":   "string_voice.h",
+    "brass":    "brass.h",
+    "sub_bass": "sub_bass.h",
 }
 
 
@@ -49,6 +55,16 @@ def route_archetype(voice: dict, channel: dict) -> str | None:
         if "pad" in name_lower: return "pad"
         if "lead" in name_lower: return "lead"
         if "pluck" in name_lower: return "pluck"
+        if "organ" in name_lower or "drawbar" in name_lower: return "organ"
+        if "fm" in name_lower or "bell" in name_lower: return "fm_synth"
+        if "noise" in name_lower or "texture" in name_lower: return "noise"
+        if "string" in name_lower or "ensemble" in name_lower: return "string"
+        if "brass" in name_lower or "horn" in name_lower or "stab" in name_lower: return "brass"
+        if "sub" in name_lower: return "sub_bass"
+        if "ratio" in params or "index" in params: return "fm_synth"
+        if "rotary" in params: return "organ"
+        if "harmonics" in params: return "sub_bass"
+        if "release" in params and "detune" in params: return "string"
         return None
     # Drum routing by name first
     if "kick" in name_lower: return "kick"

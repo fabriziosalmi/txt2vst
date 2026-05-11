@@ -31,6 +31,24 @@ THEMES = {
         "grid_a": "0xff1c0030", "grid_b": "0xff160028", "border": "0xff442266",
         "font": "Arial",
     },
+    "vapor": {
+        "bg": "0xff0a0818", "surface": "0xff1a1030", "header": "0xff2a1848",
+        "accent": "0xffff71ce", "text": "0xffffe0f0", "muted": "0xff886688",
+        "grid_a": "0xff1c1234", "grid_b": "0xff16102c", "border": "0xff442266",
+        "font": "Arial",
+    },
+    "industrial": {
+        "bg": "0xff0c0c0c", "surface": "0xff1a1a1a", "header": "0xff2a2a2a",
+        "accent": "0xffff8800", "text": "0xffd0d0d0", "muted": "0xff666666",
+        "grid_a": "0xff1e1e1e", "grid_b": "0xff181818", "border": "0xff3a3a3a",
+        "font": "Courier New",
+    },
+    "solar": {
+        "bg": "0xff100c04", "surface": "0xff201808", "header": "0xff302410",
+        "accent": "0xffffc107", "text": "0xfffff0d0", "muted": "0xff887744",
+        "grid_a": "0xff241c0c", "grid_b": "0xff1c1608", "border": "0xff554422",
+        "font": "Arial",
+    },
 }
 
 

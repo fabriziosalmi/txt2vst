@@ -16,9 +16,9 @@ jobs:
       - name: Compile test suite
         run: |
           cd dsplib
-          g++ -std=c++17 -O2 -I voices -I fx -o test_voices tests/test_voices.cpp
+          g++ -std=c++17 -O2 -I . -o test_voices tests/test_voices.cpp
 
-      - name: Run 31 Occam guardrails
+      - name: Run 40 Occam guardrails
         run: |
           cd dsplib
           ./test_voices

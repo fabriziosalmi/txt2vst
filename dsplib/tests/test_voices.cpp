@@ -1,4 +1,4 @@
-// VST Forge — DSP Test Harness (13 voice archetypes + 5 FX)
+// VST Forge — DSP Test Harness (16 voice archetypes + 8 FX)
 // Occam Guardrails: NaN/Inf, peak<1.5, DC<0.01, CPU<5%, deactivation, denormals
 #include <cmath>
 #include <cstdio>
@@ -19,11 +19,17 @@
 #include "../voices/organ.h"
 #include "../voices/fm_synth.h"
 #include "../voices/noise.h"
+#include "../voices/string_voice.h"
+#include "../voices/brass.h"
+#include "../voices/sub_bass.h"
 #include "../fx/delay.h"
 #include "../fx/reverb.h"
 #include "../fx/chorus.h"
 #include "../fx/compressor.h"
 #include "../fx/distortion.h"
+#include "../fx/phaser.h"
+#include "../fx/eq.h"
+#include "../fx/gate.h"
 
 struct TestResult {
     const char* name; bool passed;
@@ -111,7 +117,7 @@ static void pr(const TestResult& r) {
 
 int main() {
     printf("=====================================================\n");
-    printf("  txt2vst DSP Test Suite (13 voices + 5 FX)\n");
+    printf("  txt2vst DSP Test Suite (16 voices + 8 FX)\n");
     printf("=====================================================\n");
     int ok=0,tot=0;
     auto run = [&](TestResult r){ pr(r); if(r.passed)ok++; tot++; };
@@ -145,6 +151,12 @@ int main() {
     { FMSynthVoice v; v.setParams({7.0f,5.0f,0.1f,1.0f,0.8f}); run(testPitched("FM(stress)",v)); }
     { NoiseVoice v; run(testPitched("Noise",v)); }
     { NoiseVoice v; v.setParams({15000,0.9f,0.3f,0.0f}); run(testPitched("Noise(white)",v)); }
+    { StringVoice v; run(testPitched("String",v)); }
+    { StringVoice v; v.setParams({8000,0.5f,0.5f,2.0f,0.3f}); run(testPitched("String(lush)",v)); }
+    { BrassVoice v; run(testPitched("Brass",v)); }
+    { BrassVoice v; v.setParams({6000,0.8f,0.01f,0.1f,0.9f}); run(testPitched("Brass(stab)",v)); }
+    { SubBassVoice v; run(testPitched("SubBass",v)); }
+    { SubBassVoice v; v.setParams({1.5f,1.0f,0.5f,0.8f}); run(testPitched("Sub(driven)",v)); }
 
     // FX archetypes (5 tests)
     printf("\n  --- FX Archetypes ---");
@@ -193,6 +205,30 @@ int main() {
             fx.process(tL, tR, DUR);
             auto t1=std::chrono::high_resolution_clock::now();
             run(analyzeFX("FX:Distortion", tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
+        }
+        {
+            float tL[DUR], tR[DUR]; std::copy(bufL, bufL+DUR, tL); std::copy(bufR, bufR+DUR, tR);
+            PhaserFX fx; fx.prepare(SR); fx.setParams({1.0f, 0.8f, 0.6f, 0.5f});
+            auto t0=std::chrono::high_resolution_clock::now();
+            fx.process(tL, tR, DUR);
+            auto t1=std::chrono::high_resolution_clock::now();
+            run(analyzeFX("FX:Phaser", tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
+        }
+        {
+            float tL[DUR], tR[DUR]; std::copy(bufL, bufL+DUR, tL); std::copy(bufR, bufR+DUR, tR);
+            EqFX fx; fx.prepare(SR); fx.setParams({0.7f, 0.3f, 0.6f, 0.8f});
+            auto t0=std::chrono::high_resolution_clock::now();
+            fx.process(tL, tR, DUR);
+            auto t1=std::chrono::high_resolution_clock::now();
+            run(analyzeFX("FX:EQ", tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
+        }
+        {
+            float tL[DUR], tR[DUR]; std::copy(bufL, bufL+DUR, tL); std::copy(bufR, bufR+DUR, tR);
+            GateFX fx; fx.prepare(SR); fx.setParams({0.05f, 0.001f, 0.02f, 0.05f});
+            auto t0=std::chrono::high_resolution_clock::now();
+            fx.process(tL, tR, DUR);
+            auto t1=std::chrono::high_resolution_clock::now();
+            run(analyzeFX("FX:Gate", tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
         }
     }
 

@@ -12,7 +12,7 @@ Modules:
 import shutil
 from pathlib import Path
 
-from .spec import load_spec, SKELETON, DSPLIB, ARCHETYPE_MAP, route_archetype
+from .spec import load_spec, SKELETON, DSPLIB, ARCHETYPE_MAP, route_archetype, FORGE_DIR
 from .themes import gen_look_and_feel
 from .gen_cmake import gen_cmake
 from .gen_core import (gen_bus_layout, gen_param_ids, gen_param_layout,
@@ -36,7 +36,7 @@ def generate(spec_path: str, output_dir: str):
         (out / d).mkdir(parents=True, exist_ok=True)
 
     # Static files
-    shutil.copy(SKELETON / "src" / "voices" / "DspConstants.h",
+    shutil.copy(FORGE_DIR / "dsplib" / "DspConstants.h",
                 out / "src" / "voices" / "DspConstants.h")
 
     # Generated files
@@ -78,7 +78,10 @@ def generate(spec_path: str, output_dir: str):
                           "hats": "HatsVoice", "bass303": "BassVoice",
                           "tom": "TomVoice", "perc": "PercVoice",
                           "clap": "ClapVoice", "pad": "PadVoice",
-                          "lead": "LeadVoice", "pluck": "PluckVoice"}.get(archetype)
+                          "lead": "LeadVoice", "pluck": "PluckVoice",
+                          "organ": "OrganVoice", "fm_synth": "FMSynthVoice",
+                          "noise": "NoiseVoice", "string": "StringVoice",
+                          "brass": "BrassVoice", "sub_bass": "SubBassVoice"}.get(archetype)
             if arch_class and arch_class != cls:
                 content = content.replace(f"class {arch_class}", f"class {cls}")
                 content = content.replace(f"struct {arch_class}", f"struct {cls}")

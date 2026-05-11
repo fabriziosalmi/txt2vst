@@ -37,6 +37,12 @@ PITCHED_ARCHETYPES = {
                 "aliases": ["fm","fm synth","dx7","metallic","bell","bells"]},
     "noise":   {"params": ["cutoff","reso","decay","color"],
                 "aliases": ["noise","texture","riser","wind","ocean","ambient noise"]},
+    "string":  {"params": ["cutoff","reso","attack","release","detune"],
+                "aliases": ["string","strings","ensemble","violin","cello","orchestral"]},
+    "brass":   {"params": ["cutoff","reso","attack","decay","bright"],
+                "aliases": ["brass","horn","trumpet","stab","stabs","trombone"]},
+    "sub_bass":{"params": ["decay","sub","harmonics","drive"],
+                "aliases": ["sub","sub bass","subbass","808","808 bass","rumble"]},
 }
 
 FX_ARCHETYPES = {
@@ -50,6 +56,12 @@ FX_ARCHETYPES = {
                    "aliases": ["compressor","comp","limiter","squash"]},
     "distortion": {"params": ["drive","tone","mix"],
                    "aliases": ["distortion","dist","overdrive","fuzz","saturation"]},
+    "phaser":     {"params": ["rate","depth","feedback","mix"],
+                   "aliases": ["phaser","phase","jet","sweep"]},
+    "eq":         {"params": ["low","mid","mid_freq","high"],
+                   "aliases": ["eq","equalizer","tone control"]},
+    "gate":       {"params": ["threshold","attack","hold","release"],
+                   "aliases": ["gate","noise gate","expander"]},
 }
 
 ALL_ARCHETYPES = {**DRUM_ARCHETYPES, **PITCHED_ARCHETYPES}
@@ -132,7 +144,7 @@ def parse_prompt(text: str) -> dict:
 
     # Detect theme
     theme = "midnight"  # default
-    for t in ["acid","ember","frost","neon","midnight"]:
+    for t in ["acid","ember","frost","neon","vapor","industrial","solar","midnight"]:
         if t in text_lower:
             theme = t
             break
