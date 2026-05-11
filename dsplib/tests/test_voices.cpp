@@ -1,4 +1,4 @@
-// VST Forge — DSP Voice Test Harness (10 archetypes)
+// VST Forge — DSP Test Harness (13 voice archetypes + 5 FX)
 // Occam Guardrails: NaN/Inf, peak<1.5, DC<0.01, CPU<5%, deactivation, denormals
 #include <cmath>
 #include <cstdio>
@@ -16,6 +16,14 @@
 #include "../voices/pad.h"
 #include "../voices/lead.h"
 #include "../voices/pluck.h"
+#include "../voices/organ.h"
+#include "../voices/fm_synth.h"
+#include "../voices/noise.h"
+#include "../fx/delay.h"
+#include "../fx/reverb.h"
+#include "../fx/chorus.h"
+#include "../fx/compressor.h"
+#include "../fx/distortion.h"
 
 struct TestResult {
     const char* name; bool passed;
@@ -50,6 +58,28 @@ static TestResult analyze(const char* name, const float* buf, int active, double
     return r;
 }
 
+static TestResult analyzeFX(const char* name, const float* buf, double ns) {
+    TestResult r{}; r.name = name; r.passed = true;
+    r.activeSamples = 0; r.nsPerSample = ns;
+    r.cpuPercent = (ns / (1e9 / SR)) * 100.0;
+    r.peakAmp = 0.0f;
+    for (int i = 0; i < DUR; ++i) r.peakAmp = std::max(r.peakAmp, std::abs(buf[i]));
+    double dc = 0; for (int i = DUR - 1000; i < DUR; ++i) dc += buf[i];
+    r.dcOffset = (float)(dc / 1000.0);
+    r.hasNaN = r.hasInf = r.hasDenormal = false;
+    for (int i = 0; i < DUR; ++i) {
+        if (std::isnan(buf[i])) r.hasNaN = true;
+        if (std::isinf(buf[i])) r.hasInf = true;
+    }
+    int rmsLen = std::min(DUR, (int)(SR * 0.5));
+    double sq = 0; for (int i = 0; i < rmsLen; ++i) sq += (double)buf[i] * buf[i];
+    r.rmsLevel = (float)std::sqrt(sq / rmsLen);
+    if (r.hasNaN || r.hasInf) r.passed = false;
+    if (r.peakAmp > 1.5f || std::abs(r.dcOffset) > 0.01f) r.passed = false;
+    if (r.cpuPercent > 5.0) r.passed = false;
+    return r;
+}
+
 template<typename V> TestResult testDrum(const char* n, V& v) {
     static float buf[DUR]; v.prepare(SR); v.trigger();
     int last = 0;
@@ -73,19 +103,20 @@ template<typename V> TestResult testPitched(const char* n, V& v) {
 }
 
 static void pr(const TestResult& r) {
-    printf("\n%s  %s\n", r.passed?"✅ PASS":"❌ FAIL", r.name);
-    printf("  ├── Peak:%.4f RMS:%.4f DC:%.6f Active:%.2fs\n", r.peakAmp,r.rmsLevel,r.dcOffset,r.activeSamples/SR);
-    printf("  └── CPU:%.1fns (%.3f%%) NaN:%s Inf:%s Den:%s\n", r.nsPerSample,r.cpuPercent,
+    printf("\n%s  %s\n", r.passed?"PASS ":"FAIL ", r.name);
+    printf("  | Peak:%.4f RMS:%.4f DC:%.6f Active:%.2fs\n", r.peakAmp,r.rmsLevel,r.dcOffset,r.activeSamples/SR);
+    printf("  | CPU:%.1fns (%.3f%%) NaN:%s Inf:%s Den:%s\n", r.nsPerSample,r.cpuPercent,
            r.hasNaN?"Y":"n",r.hasInf?"Y":"n",r.hasDenormal?"Y":"n");
 }
 
 int main() {
-    printf("═══════════════════════════════════════════════════\n");
-    printf("  txt2vst — DSP Test Suite (10 archetypes)\n");
-    printf("═══════════════════════════════════════════════════\n");
+    printf("=====================================================\n");
+    printf("  txt2vst DSP Test Suite (13 voices + 5 FX)\n");
+    printf("=====================================================\n");
     int ok=0,tot=0;
     auto run = [&](TestResult r){ pr(r); if(r.passed)ok++; tot++; };
 
+    // Voice archetypes (20 tests)
     { KickVoice v; v.setParams({60,0.45f,0.4f,0.8f,0.3f,0.5f}); run(testDrum("Kick",v)); }
     { KickVoice v; v.setParams({40,0.8f,1,1,1,1}); run(testDrum("Kick(max)",v)); }
     { SnareVoice v; v.setParams({185,0.18f,0.5f,0.6f}); run(testDrum("Snare",v)); }
@@ -107,9 +138,67 @@ int main() {
     { PluckVoice v; v.setParams({0.8f,0.5f,0.3f}); run(testPitched("Pluck",v)); }
     { PluckVoice v; v.setParams({3.0f,1,1}); run(testPitched("Pluck(long)",v)); }
 
-    printf("\n═══════════════════════════════════════════════════\n");
+    // New voice archetypes (6 tests)
+    { OrganVoice v; run(testPitched("Organ",v)); }
+    { OrganVoice v; v.setParams({{1,1,1,1,1,1,1,1,1},0.01f,1.0f}); run(testPitched("Organ(full)",v)); }
+    { FMSynthVoice v; run(testPitched("FMSynth",v)); }
+    { FMSynthVoice v; v.setParams({7.0f,5.0f,0.1f,1.0f,0.8f}); run(testPitched("FM(stress)",v)); }
+    { NoiseVoice v; run(testPitched("Noise",v)); }
+    { NoiseVoice v; v.setParams({15000,0.9f,0.3f,0.0f}); run(testPitched("Noise(white)",v)); }
+
+    // FX archetypes (5 tests)
+    printf("\n  --- FX Archetypes ---");
+    {
+        static float bufL[DUR], bufR[DUR];
+        for (int i = 0; i < DUR; ++i) {
+            float env = (i < 4410) ? 1.0f : 0.0f;
+            bufL[i] = bufR[i] = env * 0.5f * std::sin(2.0 * 3.14159265 * 440.0 * i / SR);
+        }
+        {
+            float tL[DUR], tR[DUR]; std::copy(bufL, bufL+DUR, tL); std::copy(bufR, bufR+DUR, tR);
+            DelayFX fx; fx.prepare(SR); fx.setParams({0.375f, 0.7f, 0.5f, 0.5f, false});
+            auto t0=std::chrono::high_resolution_clock::now();
+            fx.process(tL, tR, DUR);
+            auto t1=std::chrono::high_resolution_clock::now();
+            run(analyzeFX("FX:Delay", tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
+        }
+        {
+            float tL[DUR], tR[DUR]; std::copy(bufL, bufL+DUR, tL); std::copy(bufR, bufR+DUR, tR);
+            ReverbFX fx; fx.prepare(SR); fx.setParams({0.8f, 0.5f, 0.4f, 0.02f});
+            auto t0=std::chrono::high_resolution_clock::now();
+            fx.process(tL, tR, DUR);
+            auto t1=std::chrono::high_resolution_clock::now();
+            run(analyzeFX("FX:Reverb", tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
+        }
+        {
+            float tL[DUR], tR[DUR]; std::copy(bufL, bufL+DUR, tL); std::copy(bufR, bufR+DUR, tR);
+            ChorusFX fx; fx.prepare(SR); fx.setParams({1.5f, 0.8f, 0.5f});
+            auto t0=std::chrono::high_resolution_clock::now();
+            fx.process(tL, tR, DUR);
+            auto t1=std::chrono::high_resolution_clock::now();
+            run(analyzeFX("FX:Chorus", tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
+        }
+        {
+            float tL[DUR], tR[DUR]; std::copy(bufL, bufL+DUR, tL); std::copy(bufR, bufR+DUR, tR);
+            CompressorFX fx; fx.prepare(SR); fx.setParams({0.3f, 0.7f, 0.005f, 0.05f, 0.5f});
+            auto t0=std::chrono::high_resolution_clock::now();
+            fx.process(tL, tR, DUR);
+            auto t1=std::chrono::high_resolution_clock::now();
+            run(analyzeFX("FX:Compressor", tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
+        }
+        {
+            float tL[DUR], tR[DUR]; std::copy(bufL, bufL+DUR, tL); std::copy(bufR, bufR+DUR, tR);
+            DistortionFX fx; fx.prepare(SR); fx.setParams({0.8f, 0.5f, 0.7f});
+            auto t0=std::chrono::high_resolution_clock::now();
+            fx.process(tL, tR, DUR);
+            auto t1=std::chrono::high_resolution_clock::now();
+            run(analyzeFX("FX:Distortion", tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
+        }
+    }
+
+    printf("\n=====================================================\n");
     printf("  Results: %d/%d passed\n", ok, tot);
-    printf("  %s\n", ok==tot?"🎉 All Occam guardrails satisfied!":"⚠️ Violations detected");
-    printf("═══════════════════════════════════════════════════\n\n");
+    printf("  %s\n", ok==tot?"All Occam guardrails satisfied!":"Violations detected!");
+    printf("=====================================================\n\n");
     return ok==tot?0:1;
 }

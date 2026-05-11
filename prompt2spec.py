@@ -31,6 +31,25 @@ PITCHED_ARCHETYPES = {
                 "aliases": ["pad","ambient","chord","string","strings","atmosphere"]},
     "pluck":   {"params": ["decay","bright","body"],
                 "aliases": ["pluck","guitar","pizz","pizzicato","kalimba","marimba"]},
+    "organ":   {"params": ["decay","rotary"],
+                "aliases": ["organ","drawbar","hammond","keys","keyboard"]},
+    "fm_synth":{"params": ["ratio","index","decay","feedback"],
+                "aliases": ["fm","fm synth","dx7","metallic","bell","bells"]},
+    "noise":   {"params": ["cutoff","reso","decay","color"],
+                "aliases": ["noise","texture","riser","wind","ocean","ambient noise"]},
+}
+
+FX_ARCHETYPES = {
+    "delay":      {"params": ["time","feedback","mix","tone"],
+                   "aliases": ["delay","echo","ping-pong","pingpong"]},
+    "reverb":     {"params": ["decay","damping","mix","predelay"],
+                   "aliases": ["reverb","verb","room","hall","plate"]},
+    "chorus":     {"params": ["rate","depth","mix"],
+                   "aliases": ["chorus","ensemble","detune"]},
+    "compressor": {"params": ["threshold","ratio","attack","release","makeup"],
+                   "aliases": ["compressor","comp","limiter","squash"]},
+    "distortion": {"params": ["drive","tone","mix"],
+                   "aliases": ["distortion","dist","overdrive","fuzz","saturation"]},
 }
 
 ALL_ARCHETYPES = {**DRUM_ARCHETYPES, **PITCHED_ARCHETYPES}
@@ -103,6 +122,21 @@ def parse_prompt(text: str) -> dict:
     has_swing = any(w in text_lower for w in ["swing","shuffle","groove"])
     has_sidechain = any(w in text_lower for w in ["sidechain","ducker","pump"])
 
+    # Detect FX
+    detected_fx = []
+    for fx_id, info in FX_ARCHETYPES.items():
+        for alias in info["aliases"]:
+            if alias in text_lower:
+                detected_fx.append(fx_id)
+                break
+
+    # Detect theme
+    theme = "midnight"  # default
+    for t in ["acid","ember","frost","neon","midnight"]:
+        if t in text_lower:
+            theme = t
+            break
+
     # Build spec
     channels = []
     voices = []
@@ -143,9 +177,12 @@ def parse_prompt(text: str) -> dict:
             "sequencer": has_sequencer or len(detected_drums) > 0,
             "swing": has_swing,
             "sidechain": has_sidechain,
-            "master_fx": ["drive"] if len(all_voices) > 2 else []
+            "master_fx": detected_fx if detected_fx else (["drive"] if len(all_voices) > 2 else [])
         }
     }
+
+    if theme != "midnight":
+        spec["plugin"]["theme"] = theme
 
     return spec
 
