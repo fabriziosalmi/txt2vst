@@ -12,7 +12,7 @@ Modules:
 import shutil
 from pathlib import Path
 
-from .spec import load_spec, SKELETON, DSPLIB, ARCHETYPE_MAP, route_archetype, FORGE_DIR
+from .spec import load_spec, DSPLIB, ARCHETYPE_MAP, route_archetype, FORGE_DIR
 from .themes import gen_look_and_feel
 from .gen_cmake import gen_cmake
 from .gen_core import (gen_bus_layout, gen_param_ids, gen_param_layout,
@@ -24,18 +24,44 @@ from .gen_ui import (gen_editor_h, gen_editor_cpp,
                      gen_param_panel_h, gen_stepgrid_h, gen_stepgrid_cpp)
 
 
+def _gen_build_sh(name: str) -> str:
+    """Generate a portable build.sh convenience script."""
+    return f"""#!/usr/bin/env bash
+set -euo pipefail
+
+echo "=== Building {name} ==="
+
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
+
+echo ""
+echo "Build complete."
+echo "VST3/AU plugin installed to default locations."
+"""
+
+
 def generate(spec_path: str, output_dir: str):
-    """Main entry: spec.json → full JUCE project."""
+    """Main entry: spec.json -> full JUCE project."""
     spec = load_spec(spec_path)
     out = Path(output_dir)
     name = spec["plugin"]["name"]
 
+    # F1: Validate voices/channels parity
+    if len(spec["voices"]) != len(spec["channels"]):
+        raise ValueError(
+            f"voices/channels mismatch: {len(spec['voices'])} voices vs "
+            f"{len(spec['channels'])} channels")
+
     print(f"VST Forge: generating {name} -> {out}")
+
+    # F6: Clean output dir to avoid stale files from previous generations
+    if out.exists():
+        shutil.rmtree(out)
 
     for d in ["src", "src/core", "src/voices", "src/ui"]:
         (out / d).mkdir(parents=True, exist_ok=True)
 
-    # Static files
+    # Copy DspConstants.h to src/voices/ (voice headers include it relatively)
     shutil.copy(FORGE_DIR / "dsplib" / "DspConstants.h",
                 out / "src" / "voices" / "DspConstants.h")
 
@@ -45,7 +71,7 @@ def generate(spec_path: str, output_dir: str):
         (out / "src" / "fx").mkdir(parents=True, exist_ok=True)
         shutil.copy(FORGE_DIR / "dsplib" / "fx" / "master_chain.h",
                     out / "src" / "fx" / "MasterChain.h")
-        # MasterChain needs DspConstants too
+        # FX needs DspConstants too (master_chain.h includes it relatively)
         shutil.copy(FORGE_DIR / "dsplib" / "DspConstants.h",
                     out / "src" / "fx" / "DspConstants.h")
         print(f"  Master chain: {mastering}")
@@ -53,6 +79,7 @@ def generate(spec_path: str, output_dir: str):
     # Generated files
     files = {
         "CMakeLists.txt": gen_cmake(spec),
+        "build.sh": _gen_build_sh(name),  # F3: CLI build script
         "src/core/BusLayout.h": gen_bus_layout(spec),
         "src/core/ParamIds.h": gen_param_ids(spec),
         "src/core/ParamLayout.h": gen_param_layout_h(),
@@ -87,9 +114,9 @@ def generate(spec_path: str, output_dir: str):
         if dsp_file and dsp_file.exists():
             content = dsp_file.read_text()
             arch_class = arch_info["class"]
+            # F2: Full class rename (covers ctor, dtor, all references)
             if arch_class != cls:
-                content = content.replace(f"class {arch_class}", f"class {cls}")
-                content = content.replace(f"struct {arch_class}", f"struct {cls}")
+                content = content.replace(arch_class, cls)
             files[f"src/voices/{cls}.h"] = content
             print(f"  {cls} <- dsplib/{archetype}")
         else:
@@ -98,12 +125,23 @@ def generate(spec_path: str, output_dir: str):
             files[f"src/voices/{cls}.h"] = gen_voice_stub(v_copy)
             print(f"  {cls} <- stub")
 
-    # Write all files
+    # F5: Write all files with error handling
+    written = 0
     for path, content in files.items():
         fp = out / path
-        fp.write_text(content)
-        if not path.startswith("src/voices/"):
-            print(f"  + {path}")
+        try:
+            fp.write_text(content)
+            written += 1
+            if not path.startswith("src/voices/"):
+                print(f"  + {path}")
+        except OSError as e:
+            print(f"  ERROR writing {path}: {e}")
+
+    # Make build.sh executable
+    build_sh = out / "build.sh"
+    if build_sh.exists():
+        build_sh.chmod(0o755)
 
     total_loc = sum(len(c.splitlines()) for c in files.values())
-    print(f"\nGenerated {len(files)} files, ~{total_loc} LOC")
+    print(f"\nGenerated {written}/{len(files)} files, ~{total_loc} LOC")
+
