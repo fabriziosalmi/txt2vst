@@ -152,8 +152,8 @@ with gr.Blocks(
         primary_hue="amber",
         secondary_hue="yellow",
         neutral_hue="gray",
-        font=gr.themes.GoogleFont("Source Sans Pro"),
-        font_mono=gr.themes.GoogleFont("IBM Plex Mono"),
+        font=gr.themes.GoogleFont("Source Sans 3"),
+        font_mono=gr.themes.GoogleFont("Source Code Pro"),
         radius_size=gr.themes.sizes.radius_md,
     ),
     fill_width=True,
@@ -163,7 +163,7 @@ with gr.Blocks(
         border: none !important; color: white !important; font-weight: 600 !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; }
     .gr-button-primary:hover { filter: brightness(1.05) !important; transform: translateY(-1px) !important; }
-    #spec-output textarea { font-family: 'IBM Plex Mono', monospace !important; font-size: 0.82rem !important;
+    #spec-output textarea { font-family: 'Source Code Pro', monospace !important; font-size: 0.82rem !important;
         background: #1e1e2e !important; color: #a6e3a1 !important; border-radius: 8px !important; }
     .gr-examples .gr-sample-textbox { font-size: 0.82rem !important; }
     footer { display: none !important; }
