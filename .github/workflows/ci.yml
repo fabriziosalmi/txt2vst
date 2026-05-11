@@ -52,6 +52,7 @@ jobs:
     needs: [dsp-tests, forge-test]
     if: github.ref == 'refs/heads/main'
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
