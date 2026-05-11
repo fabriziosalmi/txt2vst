@@ -24,17 +24,17 @@ DRUM_ARCHETYPES = {
 
 PITCHED_ARCHETYPES = {
     "bass_acid": {"params": ["cutoff","reso","envmod","decay","accent"],
-                "aliases": ["bass","acid","303","bassline","acid bass"]},
+                "aliases": ["bass_acid","acid bass","bass","acid","303","bassline"]},
     "lead":    {"params": ["cutoff","reso","pw","decay","envmod"],
                 "aliases": ["lead","synth lead","mono lead","solo"]},
     "pad":     {"params": ["cutoff","reso","attack","decay","detune"],
-                "aliases": ["pad","ambient","chord","string","strings","atmosphere"]},
+                "aliases": ["pad","ambient","chord","atmosphere"]},
     "pluck":   {"params": ["decay","bright","body"],
                 "aliases": ["pluck","guitar","pizz","pizzicato","kalimba","marimba"]},
     "organ":   {"params": ["decay","rotary"],
                 "aliases": ["organ","drawbar","hammond","keys","keyboard"]},
     "fm_synth":{"params": ["ratio","index","decay","feedback"],
-                "aliases": ["fm","fm synth","dx7","metallic","bell","bells"]},
+                "aliases": ["fm_synth","fm synth","fm","dx7","metallic","bell","bells"]},
     "noise":   {"params": ["cutoff","reso","decay","color"],
                 "aliases": ["noise","texture","riser","wind","ocean","ambient noise"]},
     "string":  {"params": ["cutoff","reso","attack","release","detune"],
@@ -42,7 +42,7 @@ PITCHED_ARCHETYPES = {
     "brass":   {"params": ["cutoff","reso","attack","decay","bright"],
                 "aliases": ["brass","horn","trumpet","stab","stabs","trombone"]},
     "sub_bass":{"params": ["decay","sub","harmonics","drive"],
-                "aliases": ["sub","sub bass","subbass","808","808 bass","rumble"]},
+                "aliases": ["sub_bass","sub bass","subbass","sub","808","808 bass","rumble"]},
 }
 
 FX_ARCHETYPES = {
@@ -92,16 +92,18 @@ def parse_prompt(text: str) -> dict:
     detected_drums = []
     detected_pitched = []
 
-    for arch_id, info in DRUM_ARCHETYPES.items():
-        for alias in info["aliases"]:
-            if alias in text_lower:
+    # Check multi-word/compound aliases first (sub_bass before bass, etc.)
+    for arch_id, info in sorted(DRUM_ARCHETYPES.items(), key=lambda x: -max(len(a) for a in x[1]["aliases"])):
+        for alias in sorted(info["aliases"], key=len, reverse=True):
+            if re.search(rf'\b{re.escape(alias)}\b', text_lower):
                 detected_drums.append(arch_id)
                 break
 
-    for arch_id, info in PITCHED_ARCHETYPES.items():
-        for alias in info["aliases"]:
-            if alias in text_lower:
-                detected_pitched.append(arch_id)
+    for arch_id, info in sorted(PITCHED_ARCHETYPES.items(), key=lambda x: -max(len(a) for a in x[1]["aliases"])):
+        for alias in sorted(info["aliases"], key=len, reverse=True):
+            if re.search(rf'\b{re.escape(alias)}\b', text_lower):
+                if arch_id not in detected_pitched:
+                    detected_pitched.append(arch_id)
                 break
 
     # If nothing detected, infer from keywords
@@ -134,11 +136,11 @@ def parse_prompt(text: str) -> dict:
     has_swing = any(w in text_lower for w in ["swing","shuffle","groove"])
     has_sidechain = any(w in text_lower for w in ["sidechain","ducker","pump"])
 
-    # Detect FX
+    # Detect FX (word-boundary aware)
     detected_fx = []
     for fx_id, info in FX_ARCHETYPES.items():
-        for alias in info["aliases"]:
-            if alias in text_lower:
+        for alias in sorted(info["aliases"], key=len, reverse=True):
+            if re.search(rf'\b{re.escape(alias)}\b', text_lower):
                 detected_fx.append(fx_id)
                 break
 

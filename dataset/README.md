@@ -46,7 +46,7 @@ Each sample maps a natural language description of a VST instrument to a structu
 
 ### Combinatorial Space
 - **10M+** sonically unique combinations
-- **240M+** visually distinct configurations
+- **2.7B+** visually distinct configurations
 - **16** prompt templates with natural variation
 
 ## Usage

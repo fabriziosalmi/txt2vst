@@ -140,9 +140,9 @@ DESCRIPTION = """<div style="text-align:center;margin-bottom:1rem;">
 <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.82rem;">
 <span style="background:#fef3c7;color:#92400e;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">16 Voices</span>
 <span style="background:#dbeafe;color:#1e40af;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">8 FX</span>
-<span style="background:#ede9fe;color:#5b21b6;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">24 Themes</span>
+<span style="background:#ede9fe;color:#5b21b6;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">23 Themes</span>
 <span style="background:#d1fae5;color:#065f46;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">7 Mastering</span>
-<span style="background:#fee2e2;color:#991b1b;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">240M+ Combos</span>
+<span style="background:#fee2e2;color:#991b1b;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">2.7B+ Combos</span>
 </div>
 """
 
@@ -212,7 +212,7 @@ Restart DAW → plugin ready.
 <a href="https://github.com/fabriziosalmi/txt2vst" style="color:#6b7280;text-decoration:none;">GitHub</a> ·
 <a href="https://txt2vst.com" style="color:#6b7280;text-decoration:none;">Website</a> ·
 <a href="https://huggingface.co/datasets/fabriziosalmi/txt2vst" style="color:#6b7280;text-decoration:none;">Dataset</a>
-&nbsp;—&nbsp; Zero ML, pure structured generation. 240M+ unique instruments.
+&nbsp;—&nbsp; Zero ML, pure structured generation. 2.7B+ unique instruments.
 </div>""")
 
 if __name__ == "__main__":

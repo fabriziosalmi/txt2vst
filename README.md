@@ -4,7 +4,7 @@
 
 ### Text → VST in One Command
 
-*Generate production-grade VST3/AU instruments from natural language. 240M+ unique combinations.*
+*Generate production-grade VST3/AU instruments from natural language. 2.7B+ unique combinations.*
 
 [![DSP Tests](https://img.shields.io/badge/Occam_tests-46%2F46-brightgreen?style=for-the-badge)](https://github.com/fabriziosalmi/txt2vst)
 [![Archetypes](https://img.shields.io/badge/archetypes-16+8-blue?style=for-the-badge)](https://github.com/fabriziosalmi/txt2vst)
@@ -119,7 +119,7 @@ Selectable per-plugin mastering chain on the output bus:
 | **Distorted** | Warm saturation, grit |
 | **Wide** | Stereo widening above 300Hz |
 
-## 🎨 24 UI Themes
+## 🎨 23 UI Themes
 
 Each generates a unique JUCE `LookAndFeel` — purely CSS-driven, zero DSP impact:
 
@@ -158,8 +158,8 @@ cd dsplib && clang++ -std=c++17 -O2 -I . -o test_voices tests/test_voices.cpp &&
 | FX processors | 8 |
 | UI themes | 24 |
 | Mastering presets | 7 |
-| **Sonically unique** | **10M+** |
-| **Visually distinct** | **240M+** |
+| **Sonically unique** | **117M+** |
+| **Visually distinct** | **2.7B+** |
 
 ## 📁 Project Structure
 
@@ -197,7 +197,7 @@ txt2vst/
 - [x] 16 production DSP archetypes (drums + pitched)
 - [x] 8 FX processors
 - [x] 7 mastering presets
-- [x] 24 UI themes
+- [x] 23 UI themes
 - [x] Occam guardrail test suite (46/46)
 - [x] Prompt → spec.json NLP parser
 - [x] Full pipeline: text → compiled VST3

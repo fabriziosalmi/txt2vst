@@ -14,5 +14,5 @@ tags:
   - music
   - code-generation
   - text-to-code
-short_description: "Text to VST3 plugin — 240M+ unique combinations, zero ML"
+short_description: "Text to VST3 plugin — 2.7B+ unique combinations, zero ML"
 ---
