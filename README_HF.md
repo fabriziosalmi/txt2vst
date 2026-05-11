@@ -1,10 +1,10 @@
 ---
 title: txt2vst
 emoji: "🎹"
-colorFrom: emerald
+colorFrom: green
 colorTo: blue
 sdk: gradio
-sdk_version: 5.31.0
+sdk_version: 4.44.1
 app_file: app.py
 pinned: true
 license: mit
