@@ -39,6 +39,17 @@ def generate(spec_path: str, output_dir: str):
     shutil.copy(FORGE_DIR / "dsplib" / "DspConstants.h",
                 out / "src" / "voices" / "DspConstants.h")
 
+    # Master chain (optional)
+    mastering = spec["features"].get("mastering")
+    if mastering:
+        (out / "src" / "fx").mkdir(parents=True, exist_ok=True)
+        shutil.copy(FORGE_DIR / "dsplib" / "fx" / "master_chain.h",
+                    out / "src" / "fx" / "MasterChain.h")
+        # MasterChain needs DspConstants too
+        shutil.copy(FORGE_DIR / "dsplib" / "DspConstants.h",
+                    out / "src" / "fx" / "DspConstants.h")
+        print(f"  🎛️  Master chain: {mastering}")
+
     # Generated files
     files = {
         "CMakeLists.txt": gen_cmake(spec),

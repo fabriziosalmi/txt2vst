@@ -1,4 +1,4 @@
-// VST Forge — DSP Test Harness (16 voice archetypes + 8 FX)
+// VST Forge — DSP Test Harness (16 voices + 8 FX + 6 master presets)
 // Occam Guardrails: NaN/Inf, peak<1.5, DC<0.01, CPU<5%, deactivation, denormals
 #include <cmath>
 #include <cstdio>
@@ -30,6 +30,7 @@
 #include "../fx/phaser.h"
 #include "../fx/eq.h"
 #include "../fx/gate.h"
+#include "../fx/master_chain.h"
 
 struct TestResult {
     const char* name; bool passed;
@@ -229,6 +230,18 @@ int main() {
             fx.process(tL, tR, DUR);
             auto t1=std::chrono::high_resolution_clock::now();
             run(analyzeFX("FX:Gate", tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
+        }
+
+        // Master Chain presets (6 tests)
+        printf("\n  --- Master Chain ---");
+        const char* presetNames[] = {"MC:Transparent","MC:Punch","MC:Wet","MC:Radio","MC:Distorted","MC:Wide"};
+        for (int p = 1; p <= 6; ++p) {
+            float tL[DUR], tR[DUR]; std::copy(bufL, bufL+DUR, tL); std::copy(bufR, bufR+DUR, tR);
+            MasterChain mc; mc.prepare(SR); mc.setPreset(p);
+            auto t0=std::chrono::high_resolution_clock::now();
+            mc.process(tL, tR, DUR);
+            auto t1=std::chrono::high_resolution_clock::now();
+            run(analyzeFX(presetNames[p-1], tL, std::chrono::duration<double,std::nano>(t1-t0).count()/DUR));
         }
     }
 

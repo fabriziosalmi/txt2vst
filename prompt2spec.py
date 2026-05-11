@@ -149,6 +149,24 @@ def parse_prompt(text: str) -> dict:
             theme = t
             break
 
+    # Detect mastering preset
+    mastering = None
+    mastering_aliases = {
+        "punch":       ["punch", "punchy", "hard", "aggressive", "smack"],
+        "wet":         ["wet", "lush", "atmospheric", "spacey", "ambient"],
+        "radio":       ["radio", "lo-fi", "lofi", "telephone", "lo fi"],
+        "distorted":   ["distorted", "dirty", "gritty", "crushed", "saturated"],
+        "wide":        ["wide", "stereo", "spatial", "3d", "immersive"],
+        "transparent": ["transparent", "clean master", "mastered", "mastering", "glue", "polished"],
+    }
+    for preset, aliases in mastering_aliases.items():
+        for alias in aliases:
+            if alias in text_lower:
+                mastering = preset
+                break
+        if mastering:
+            break
+
     # Build spec
     channels = []
     voices = []
@@ -173,6 +191,15 @@ def parse_prompt(text: str) -> dict:
     prefix = plugin_name[:3].upper() if len(plugin_name) >= 3 else "PLG"
     code = (plugin_name[:4].capitalize() if len(plugin_name) >= 4 else "Plgn")
 
+    features = {
+        "sequencer": has_sequencer or len(detected_drums) > 0,
+        "swing": has_swing,
+        "sidechain": has_sidechain,
+        "master_fx": detected_fx if detected_fx else (["drive"] if len(all_voices) > 2 else [])
+    }
+    if mastering:
+        features["mastering"] = mastering
+
     spec = {
         "plugin": {
             "name": plugin_name,
@@ -185,12 +212,7 @@ def parse_prompt(text: str) -> dict:
         },
         "channels": channels,
         "voices": voices,
-        "features": {
-            "sequencer": has_sequencer or len(detected_drums) > 0,
-            "swing": has_swing,
-            "sidechain": has_sidechain,
-            "master_fx": detected_fx if detected_fx else (["drive"] if len(all_voices) > 2 else [])
-        }
+        "features": features
     }
 
     if theme != "midnight":

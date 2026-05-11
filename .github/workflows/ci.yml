@@ -18,7 +18,7 @@ jobs:
           cd dsplib
           g++ -std=c++17 -O2 -I . -o test_voices tests/test_voices.cpp
 
-      - name: Run 40 Occam guardrails
+      - name: Run 46 Occam guardrails
         run: |
           cd dsplib
           ./test_voices
