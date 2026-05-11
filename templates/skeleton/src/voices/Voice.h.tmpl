@@ -1,0 +1,105 @@
+#pragma once
+#include <cmath>
+#include "DspConstants.h"
+
+// {{VOICE_DESCRIPTION}}
+class {{VoiceName}}Voice
+{
+public:
+    struct Params
+    {
+{{#PARAMS}}
+        float {{name}} = {{default}};   // {{unit}} — {{description}} ({{min}}–{{max}})
+{{/PARAMS}}
+    };
+
+    void prepare(double sr)
+    {
+        sampleRate = sr;
+        phase = 0.0;
+        samplesRemaining = 0;
+        // Pre-compute filter/envelope coefficients here
+        // Example: decayCoeff = std::exp(-1.0 / (0.3 * sr));
+    }
+
+    void setParams(const Params& p)
+    {
+        params = p;
+        // Recompute dependent coefficients from new params
+    }
+
+    void trigger({{#IS_PITCHED}}int midiNote, float velocity = 1.0f{{/IS_PITCHED}})
+    {
+        // Reset oscillator phase(s)
+        phase = 0.0;
+
+{{#IS_PITCHED}}
+        // Pitched voice: set frequency from MIDI note
+        targetFreq = 440.0 * std::pow(2.0, (midiNote - 69) / 12.0);
+        vel = velocity;
+{{/IS_PITCHED}}
+
+        // Compute duration from decay parameter
+        samplesRemaining = static_cast<int>(sampleRate * params.{{DECAY_PARAM}} * {{DECAY_MULTIPLIER}});
+
+        // Reset envelopes
+        ampEnv = 1.0f;
+        ampDecayCoeff = static_cast<float>(std::exp(-1.0 / (params.{{DECAY_PARAM}} * sampleRate)));
+
+        active = true;
+    }
+
+{{#IS_PITCHED}}
+    void noteOff() { releasing = true; }
+{{/IS_PITCHED}}
+
+    bool isActive() const { return active && samplesRemaining > 0; }
+
+    float tick()
+    {
+        if (!active || samplesRemaining <= 0) { active = false; return 0.0f; }
+        --samplesRemaining;
+
+        // ── 1. Amplitude envelope ──
+        ampEnv *= ampDecayCoeff;
+        if (ampEnv < 0.0001f) { active = false; return 0.0f; }
+
+        // ── 2. Oscillator(s) ──
+        const double freq = {{#IS_PITCHED}}targetFreq{{/IS_PITCHED}}{{^IS_PITCHED}}static_cast<double>(params.{{TUNE_PARAM}}){{/IS_PITCHED}};
+        const double phaseInc = (Dsp::TWO_PI * freq) / sampleRate;
+        phase += phaseInc;
+        if (phase >= Dsp::TWO_PI) phase -= Dsp::TWO_PI;
+        float osc = fastSinD(phase);
+
+        // ── 3. Filter (optional) ──
+        // TODO: Add filter processing
+
+        // ── 4. Waveshaping/drive (optional) ──
+        // TODO: Add drive processing
+
+        // ── 5. Output ──
+        float out = osc * ampEnv;
+{{#IS_PITCHED}}
+        out *= vel;
+{{/IS_PITCHED}}
+
+        return out;
+    }
+
+private:
+    Params  params;
+    double  sampleRate       = 44100.0;
+    int     samplesRemaining = 0;
+    double  phase            = 0.0;
+    float   ampEnv           = 0.0f;
+    float   ampDecayCoeff    = 0.999f;
+    bool    active           = false;
+
+{{#IS_PITCHED}}
+    double  targetFreq       = 110.0;
+    float   vel              = 1.0f;
+    bool    releasing        = false;
+{{/IS_PITCHED}}
+
+    // Add additional state: sub-oscillator, noise, filter, etc.
+};

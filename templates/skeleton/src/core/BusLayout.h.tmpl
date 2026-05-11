@@ -1,0 +1,24 @@
+#pragma once
+#include <JuceHeader.h>
+
+namespace {{PLUGIN_PREFIX}}Bus
+{
+{{#CHANNELS}}
+    constexpr int {{CONST_NAME}} = {{INDEX}};
+{{/CHANNELS}}
+    constexpr int COUNT = {{NUM_CHANNELS}};
+
+    constexpr const char* NAMES[] = {
+        {{#CHANNELS}}"{{DISPLAY_NAME}}"{{^LAST}},{{/LAST}}{{/CHANNELS}}
+    };
+}
+
+namespace MidiMap
+{
+{{#DRUM_CHANNELS}}
+    constexpr int {{CONST_NAME}} = {{MIDI_NOTE}};
+{{/DRUM_CHANNELS}}
+{{#PITCHED_CHANNELS}}
+    constexpr int {{CONST_NAME}}_CH = {{MIDI_CHANNEL}};
+{{/PITCHED_CHANNELS}}
+}

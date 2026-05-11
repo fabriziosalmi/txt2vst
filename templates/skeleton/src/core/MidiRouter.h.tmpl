@@ -1,0 +1,48 @@
+#pragma once
+#include <JuceHeader.h>
+#include "VoiceBank.h"
+#include "BusLayout.h"
+
+// Routes incoming MIDI messages to VoiceBank. Stateless — header-only.
+struct MidiRouter
+{
+    static void process(const juce::MidiBuffer& midi, VoiceBank& voices)
+    {
+        for (const auto meta : midi)
+        {
+            const auto msg = meta.getMessage();
+            const int  ch  = msg.getChannel();
+
+            if (msg.isNoteOn(false))
+            {
+                const int   note = msg.getNoteNumber();
+                const float vel  = msg.getFloatVelocity();
+
+                // Drum notes: any channel except dedicated pitched channels
+{{#PITCHED_CHANNELS}}
+                if (ch != MidiMap::{{CONST_NAME}}_CH)
+{{/PITCHED_CHANNELS}}
+                {
+                    switch (note)
+                    {
+{{#DRUM_CHANNELS}}
+                        case MidiMap::{{CONST_NAME}}: voices.trigger({{PLUGIN_PREFIX}}Bus::{{CONST_NAME}}, vel); break;
+{{/DRUM_CHANNELS}}
+                        default: break;
+                    }
+                }
+
+{{#PITCHED_CHANNELS}}
+                if (ch == MidiMap::{{CONST_NAME}}_CH) voices.triggerPitched({{PITCHED_INDEX}}, note, vel);
+{{/PITCHED_CHANNELS}}
+            }
+
+            if (msg.isNoteOff())
+            {
+{{#PITCHED_CHANNELS}}
+                if (ch == MidiMap::{{CONST_NAME}}_CH) voices.noteOffPitched({{PITCHED_INDEX}});
+{{/PITCHED_CHANNELS}}
+            }
+        }
+    }
+};

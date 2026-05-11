@@ -1,0 +1,40 @@
+#pragma once
+#include <JuceHeader.h>
+#include "PluginProcessor.h"
+{{#HAS_SEQUENCER}}
+#include "ui/StepGrid.h"
+{{/HAS_SEQUENCER}}
+#include "ui/SpaceLookAndFeel.h"
+
+class {{PLUGIN_NAME}}Editor : public juce::AudioProcessorEditor
+{
+public:
+    explicit {{PLUGIN_NAME}}Editor({{PLUGIN_NAME}}Processor&);
+    ~{{PLUGIN_NAME}}Editor() override;
+
+    void paint(juce::Graphics&) override;
+    void resized() override;
+
+private:
+    static constexpr int TITLE_H  = 28;
+    static constexpr int MASTER_H = 58;
+    static constexpr int MK_SZ    = 30;
+
+    {{PLUGIN_NAME}}Processor& processorRef;
+    SpaceLookAndFeel spaceLnf;
+{{#HAS_SEQUENCER}}
+    StepGrid stepGrid;
+{{/HAS_SEQUENCER}}
+    juce::TooltipWindow tooltipWindow { this, 400 };
+
+{{#MASTER_FX}}
+    struct MasterKnob {
+        std::unique_ptr<juce::Slider> knob;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> att;
+        juce::String label;
+    };
+    std::array<MasterKnob, {{MASTER_FX_COUNT}}> masterKnobs;
+{{/MASTER_FX}}
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR({{PLUGIN_NAME}}Editor)
+};

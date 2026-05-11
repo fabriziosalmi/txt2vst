@@ -1,0 +1,90 @@
+#pragma once
+#include <JuceHeader.h>
+#include <array>
+#include <cmath>
+#include "VoiceBank.h"
+#include "../Sequencer.h"
+
+// Reads AudioPlayHead, advances each channel's sequencer step independently,
+// fires voices on step change. Swing delays every odd 16th note.
+struct TransportSync
+{
+    static void process(juce::AudioPlayHead* playHead,
+                        Sequencer&           seq,
+                        VoiceBank&           voices,
+                        std::array<int, Sequencer::NUM_CHANNELS>& lastSteps,
+                        int64_t&             prevBar,
+                        float swing)
+    {
+        if (!playHead) return;
+        const auto pos = playHead->getPosition();
+        if (!pos) return;
+
+        const bool playing = pos->getIsPlaying();
+        seq.isPlaying.store(playing, std::memory_order_release);
+
+        if (!playing)
+        {
+            for (auto& s : seq.currentSteps)
+                s.store(-1, std::memory_order_release);
+            lastSteps.fill(-1);
+            prevBar = -1;
+            return;
+        }
+
+        const auto ppqOpt = pos->getPpqPosition();
+        if (!ppqOpt) return;
+        const double ppq = *ppqOpt < 0.0 ? 0.0 : *ppqOpt;
+
+        // Swing: even step fires at pair_start, odd at pair_start + swing offset
+        const double swingFactor = 0.5 + static_cast<double>(swing) * 0.25;
+        constexpr double ppqPerPair = 0.5;
+
+        const auto   pairIdx   = static_cast<int64_t>(std::floor(ppq / ppqPerPair));
+        const double posInPair = ppq - static_cast<double>(pairIdx) * ppqPerPair;
+        const int64_t globalStep = (posInPair < swingFactor * ppqPerPair)
+                                   ? pairIdx * 2
+                                   : pairIdx * 2 + 1;
+
+        // Bar tracking
+        const int64_t currentBar = globalStep / 16;
+        seq.currentBar.store(currentBar, std::memory_order_release);
+        prevBar = currentBar;
+
+        // Step advancement per channel
+        for (int ch = 0; ch < Sequencer::NUM_CHANNELS; ++ch)
+        {
+            const int len    = seq.getPatternLength(ch);
+            const int chStep = static_cast<int>(((globalStep % len) + len) % len);
+            seq.currentSteps[ch].store(chStep, std::memory_order_release);
+
+            if (chStep == lastSteps[ch]) continue;
+            lastSteps[ch] = chStep;
+
+            if (seq.getStep(ch, chStep))
+            {
+                float vel = seq.getVelocity(ch, chStep) / 127.0f;
+
+{{#HAS_PITCHED}}
+                if (ch >= {{FIRST_PITCHED_INDEX}})
+                {
+                    const int pi = ch - {{FIRST_PITCHED_INDEX}};
+                    voices.triggerPitched(pi, 48, vel);  // C3 base note
+                }
+                else
+{{/HAS_PITCHED}}
+                {
+                    voices.trigger(ch, vel);
+                }
+            }
+{{#HAS_PITCHED}}
+            else if (ch >= {{FIRST_PITCHED_INDEX}})
+            {
+                const int pi = ch - {{FIRST_PITCHED_INDEX}};
+                if (voices.isActive(ch))
+                    voices.noteOffPitched(pi);
+            }
+{{/HAS_PITCHED}}
+        }
+    }
+};

@@ -1,0 +1,51 @@
+#pragma once
+
+// Single source of truth for all APVTS parameter ID strings.
+// AUTO-GENERATED from voice specifications.
+namespace ParamId
+{
+    // Volume ({{NUM_CHANNELS}} channels)
+    inline const char* vol(int ch)
+    {
+        static const char* ids[] = {
+            {{#CHANNELS}}"vol_{{INDEX}}"{{^LAST}},{{/LAST}}{{/CHANNELS}}
+        };
+        if (ch < 0 || ch > {{NUM_CHANNELS_MINUS_1}}) return ids[0];
+        return ids[ch];
+    }
+
+    // Pan ({{NUM_CHANNELS}} channels)
+    inline const char* pan(int ch)
+    {
+        static const char* ids[] = {
+            {{#CHANNELS}}"pan_{{INDEX}}"{{^LAST}},{{/LAST}}{{/CHANNELS}}
+        };
+        if (ch < 0 || ch > {{NUM_CHANNELS_MINUS_1}}) return ids[0];
+        return ids[ch];
+    }
+
+{{#VOICES}}
+    // {{VOICE_DISPLAY_NAME}}
+{{#PARAMS}}
+    constexpr const char* {{VOICE_UPPER}}_{{PARAM_UPPER}} = "{{voice_lower}}_{{param_lower}}";
+{{/PARAMS}}
+
+{{/VOICES}}
+{{#HAS_SIDECHAIN}}
+    // Sidechain
+{{#SIDECHAIN_TARGETS}}
+    constexpr const char* SC_{{TARGET_UPPER}} = "sc_{{target_lower}}";
+{{/SIDECHAIN_TARGETS}}
+    constexpr const char* SC_RELEASE = "sc_release";
+{{/HAS_SIDECHAIN}}
+
+    // Global
+    constexpr const char* SWING = "swing";
+
+{{#MASTER_FX}}
+    // Master FX
+{{#FX_PARAMS}}
+    constexpr const char* {{FX_UPPER}}_{{PARAM_UPPER}} = "{{fx_lower}}_{{param_lower}}";
+{{/FX_PARAMS}}
+{{/MASTER_FX}}
+}

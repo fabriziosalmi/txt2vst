@@ -1,0 +1,30 @@
+{
+  "plugin": {
+    "name": "AcidStation",
+    "company": "FabLab",
+    "code": "Acs0",
+    "mfr_code": "Fblb",
+    "version": "0.1.0",
+    "prefix": "Acs",
+    "ui": [800, 500]
+  },
+  "channels": [
+    {"name":"Kick","type":"drum","midi":36},
+    {"name":"Snare","type":"drum","midi":38},
+    {"name":"Hats","type":"drum","midi":42},
+    {"name":"Acid","type":"pitched","midi_ch":1}
+  ],
+  "voices": [
+    {"name":"Kick","params":["tune","decay","punch"]},
+    {"name":"Snare","params":["tune","decay","noise"]},
+    {"name":"Hats","params":["decay","tone"]},
+    {"name":"Acid","class":"AcidVoice","params":["cutoff","reso","envmod","decay","accent"]}
+  ],
+  "features": {
+    "sequencer": true,
+    "sidechain": true,
+    "master_fx": ["drive","delay"],
+    "swing": true
+  },
+  "default_patterns": ["0x1111","0x1010","0x5555","0x2222"]
+}

@@ -1,0 +1,80 @@
+#pragma once
+#include <JuceHeader.h>
+#include <atomic>
+#include <array>
+{{#VOICES}}
+#include "../voices/{{VoiceName}}Voice.h"
+{{/VOICES}}
+#include "BusLayout.h"
+
+{{#HAS_SIDECHAIN}}
+// Sidechain ducker: trigger source → target ducking envelope
+struct SidechainDucker
+{
+    float env          = 0.0f;
+    float releaseCoeff = 0.999f;
+
+    void trigger(float amount) { env = amount; }
+
+    void setRelease(double sr, float relSec)
+    {
+        releaseCoeff = static_cast<float>(std::exp(-1.0 / (std::max(0.01, static_cast<double>(relSec)) * sr)));
+    }
+
+    float tick()
+    {
+        env *= releaseCoeff;
+        return 1.0f - env;
+    }
+};
+{{/HAS_SIDECHAIN}}
+
+// Owns all {{NUM_CHANNELS}} voices. Single point of contact for trigger, render, and UI.
+class VoiceBank
+{
+public:
+    explicit VoiceBank(juce::AudioProcessorValueTreeState& apvts);
+
+    // Audio thread
+    void prepare(double sampleRate);
+    void consumeUiTriggers();
+    void trigger(int ch, float vel = 1.0f);
+{{#HAS_PITCHED}}
+    void triggerPitched(int idx, int midiNote, float vel = 1.0f);
+    void noteOffPitched(int idx);
+{{/HAS_PITCHED}}
+    void renderBus(int ch, float* L, float* R, int numSamples, float vol);
+    bool isActive(int ch) const;
+
+    // UI / message thread
+    void requestTrigger(int ch);
+{{#HAS_PITCHED}}
+    void requestPitchedNote(int idx, int midiNote);
+    int  getPitchedNote(int idx) const;
+{{/HAS_PITCHED}}
+
+private:
+    juce::AudioProcessorValueTreeState& apvts;
+    double storedSampleRate = 44100.0;
+
+{{#DRUM_VOICES}}
+    {{VoiceName}}Voice {{instanceName}};
+{{/DRUM_VOICES}}
+{{#PITCHED_VOICES}}
+    std::array<{{VoiceName}}Voice, {{PITCHED_COUNT}}> pitched;
+{{/PITCHED_VOICES}}
+
+{{#HAS_SIDECHAIN}}
+    std::array<SidechainDucker, {{SIDECHAIN_TARGET_COUNT}}> sidechain;
+{{/HAS_SIDECHAIN}}
+
+    std::array<std::atomic<bool>, {{PLUGIN_PREFIX}}Bus::COUNT> uiTriggers {};
+{{#HAS_PITCHED}}
+    std::array<std::atomic<int>, {{PITCHED_COUNT}}> uiPitchedNotes {};
+{{/HAS_PITCHED}}
+    std::array<float, {{PLUGIN_PREFIX}}Bus::COUNT> channelVelocity {};
+
+    float raw(const char* id) const;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VoiceBank)
+};

@@ -1,0 +1,38 @@
+{
+  "plugin": {
+    "name": "OldSchoolBox",
+    "company": "FabLab",
+    "code": "Osb0",
+    "mfr_code": "Fblb",
+    "version": "0.3.0",
+    "prefix": "Osb",
+    "ui": [1031, 625]
+  },
+  "channels": [
+    {"name":"Kick","type":"drum","midi":36},
+    {"name":"Snare","type":"drum","midi":38},
+    {"name":"Hats","type":"drum","midi":42},
+    {"name":"Tom","type":"drum","midi":45},
+    {"name":"Perc1","type":"drum","midi":48},
+    {"name":"Perc2","type":"drum","midi":50},
+    {"name":"Bass1","type":"pitched","midi_ch":1},
+    {"name":"Bass2","type":"pitched","midi_ch":2}
+  ],
+  "voices": [
+    {"name":"Kick","params":["tune","decay","punch","pitchenv","drive","sub"]},
+    {"name":"Snare","params":["tune","decay","snap","noise"]},
+    {"name":"Hats","params":["decay","tone","body"]},
+    {"name":"Tom","params":["tune","decay","pitchenv","attack"]},
+    {"name":"Perc1","params":["tune","decay","detune","drive"]},
+    {"name":"Perc2","params":["tune","decay","noise","pitch"]},
+    {"name":"Bass1","class":"BassVoice","params":["cutoff","reso","envmod","decay","accent"]},
+    {"name":"Bass2","class":"BassVoice","params":["cutoff","reso","envmod","decay","accent"]}
+  ],
+  "features": {
+    "sequencer": true,
+    "sidechain": true,
+    "master_fx": ["drive","delay"],
+    "swing": true
+  },
+  "default_patterns": ["0x1111","0x1010","0x0444","0x0080","0x0400","0x2000","0x0204","0x2080"]
+}

@@ -1,0 +1,125 @@
+#pragma once
+#include <atomic>
+#include <array>
+#include <cstdint>
+
+// Per-channel step sequencer. Patterns are uint64_t bitmasks (up to 64 steps).
+// Thread-safe via atomics — audio thread reads, UI thread writes.
+struct Sequencer
+{
+    static constexpr int NUM_CHANNELS = {{NUM_CHANNELS}};
+    static constexpr int MAX_STEPS    = 64;
+
+    Sequencer()
+    {
+        for (auto& row : velocities)
+            for (auto& v : row)
+                v.store(100, std::memory_order_relaxed);
+        for (auto& l : patternLengths)
+            l.store(16, std::memory_order_relaxed);
+        for (auto& s : currentSteps)
+            s.store(-1, std::memory_order_relaxed);
+    }
+
+    // ── Step on/off ──
+
+    void toggleStep(int ch, int step)
+    {
+        if (!valid(ch, step)) return;
+        patterns[ch].fetch_xor(1ULL << step, std::memory_order_acq_rel);
+    }
+
+    bool getStep(int ch, int step) const
+    {
+        if (!valid(ch, step)) return false;
+        return (patterns[ch].load(std::memory_order_acquire) >> step) & 1ULL;
+    }
+
+    void setStep(int ch, int step, bool on)
+    {
+        if (!valid(ch, step)) return;
+        const uint64_t mask = 1ULL << step;
+        if (on) patterns[ch].fetch_or(mask, std::memory_order_acq_rel);
+        else    patterns[ch].fetch_and(~mask, std::memory_order_acq_rel);
+    }
+
+    uint64_t getPattern(int ch) const { return patterns[ch].load(std::memory_order_acquire); }
+    void     setPattern(int ch, uint64_t pat) { patterns[ch].store(pat, std::memory_order_release); }
+
+    // ── Velocity ──
+
+    uint8_t getVelocity(int ch, int step) const
+    {
+        if (!valid(ch, step)) return 100;
+        return velocities[ch][step].load(std::memory_order_acquire);
+    }
+
+    void setVelocity(int ch, int step, uint8_t vel)
+    {
+        if (!valid(ch, step)) return;
+        velocities[ch][step].store(vel, std::memory_order_release);
+    }
+
+    // ── Pattern length (16/32/48/64) ──
+
+    int  getPatternLength(int ch) const { return patternLengths[ch].load(std::memory_order_acquire); }
+    void setPatternLength(int ch, int len)
+    {
+        const int clamped = (len <= 16) ? 16 : (len <= 32) ? 32 : (len <= 48) ? 48 : 64;
+        patternLengths[ch].store(static_cast<uint8_t>(clamped), std::memory_order_release);
+    }
+
+    // ── Utility ──
+
+    void clearChannel(int ch)
+    {
+        if (ch >= 0 && ch < NUM_CHANNELS)
+            patterns[ch].store(0, std::memory_order_release);
+    }
+
+    void randomizeChannel(int ch, float density = 0.35f)
+    {
+        if (ch < 0 || ch >= NUM_CHANNELS) return;
+        rngSeed ^= rngSeed << 13; rngSeed ^= rngSeed >> 17; rngSeed ^= rngSeed << 5;
+        uint32_t rng = rngSeed ^ static_cast<uint32_t>(ch * 7919);
+        const int len = getPatternLength(ch);
+        uint64_t pat = 0;
+        for (int s = 0; s < len; ++s)
+        {
+            rng ^= rng << 13; rng ^= rng >> 17; rng ^= rng << 5;
+            if ((static_cast<float>(rng & 0xFFFF) / 65535.0f) < density)
+                pat |= 1ULL << s;
+        }
+        patterns[ch].store(pat, std::memory_order_release);
+    }
+
+    // ── Mute / Solo ──
+    std::array<std::atomic<bool>, NUM_CHANNELS> mute {};
+    std::array<std::atomic<bool>, NUM_CHANNELS> solo {};
+
+    bool isChannelAudible(int ch) const
+    {
+        bool anySolo = false;
+        for (int i = 0; i < NUM_CHANNELS; ++i)
+            if (solo[i].load(std::memory_order_relaxed)) { anySolo = true; break; }
+        if (anySolo) return solo[ch].load(std::memory_order_relaxed) && !mute[ch].load(std::memory_order_relaxed);
+        return !mute[ch].load(std::memory_order_relaxed);
+    }
+
+    // ── Audio-thread write / UI-thread read ──
+    std::array<std::atomic<int>,  NUM_CHANNELS> currentSteps;
+    std::atomic<bool>                           isPlaying { false };
+    std::array<std::atomic<bool>, NUM_CHANNELS> autoVar {};
+    std::atomic<int64_t>                        currentBar { -1 };
+    std::array<std::atomic<uint8_t>, NUM_CHANNELS> patternLengths;
+
+private:
+    static bool valid(int ch, int step)
+    {
+        return ch >= 0 && ch < NUM_CHANNELS && step >= 0 && step < MAX_STEPS;
+    }
+
+    std::array<std::atomic<uint64_t>, NUM_CHANNELS>                       patterns {};
+    std::array<std::array<std::atomic<uint8_t>, MAX_STEPS>, NUM_CHANNELS> velocities;
+    uint32_t rngSeed = 12345;
+};

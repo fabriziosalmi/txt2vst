@@ -1,0 +1,64 @@
+#pragma once
+#include <JuceHeader.h>
+#include "core/BusLayout.h"
+#include "core/VoiceBank.h"
+#include "core/ParamLayout.h"
+#include "Sequencer.h"
+
+class {{PLUGIN_NAME}}Processor : public juce::AudioProcessor
+{
+public:
+    {{PLUGIN_NAME}}Processor();
+    ~{{PLUGIN_NAME}}Processor() override = default;
+
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+    void releaseResources() override {}
+    bool isBusesLayoutSupported(const BusesLayout&) const override;
+    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+
+    juce::AudioProcessorEditor* createEditor() override;
+    bool hasEditor() const override { return true; }
+
+    const juce::String getName() const override { return JucePlugin_Name; }
+    bool acceptsMidi() const override { return true; }
+    bool producesMidi() const override { return false; }
+    bool isMidiEffect() const override { return false; }
+    double getTailLengthSeconds() const override { return 2.0; }
+
+    int getNumPrograms() override { return 1; }
+    int getCurrentProgram() override { return 0; }
+    void setCurrentProgram(int) override {}
+    const juce::String getProgramName(int) override { return {}; }
+    void changeProgramName(int, const juce::String&) override {}
+
+    void getStateInformation(juce::MemoryBlock&) override;
+    void setStateInformation(const void*, int) override;
+
+    juce::AudioProcessorValueTreeState apvts;
+    Sequencer   sequencer;
+    VoiceBank   voiceBank;
+    std::atomic<float> currentBpm { 120.0f };
+
+private:
+    std::array<int, Sequencer::NUM_CHANNELS> lastSteps;
+    int64_t prevBar = -1;
+    double currentSampleRate = 44100.0;
+
+    // Mono crossover: LP filter states per bus
+    struct CrossoverState { float lpL = 0.0f, lpR = 0.0f; };
+    std::array<CrossoverState, {{PLUGIN_PREFIX}}Bus::COUNT> crossover {};
+    float crossoverAlpha = 0.04f;
+
+{{#HAS_DELAY}}
+    // Delay FX
+    static constexpr int MAX_DELAY_SAMPLES = 96000;
+    struct DelayState {
+        std::array<float, MAX_DELAY_SAMPLES> bufL {}, bufR {};
+        int writePos = 0;
+        float smoothedDelay = 0.0f;
+    };
+    std::array<DelayState, 1> delay {};
+{{/HAS_DELAY}}
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR({{PLUGIN_NAME}}Processor)
+};
