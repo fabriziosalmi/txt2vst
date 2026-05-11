@@ -44,31 +44,34 @@ chmod +x build.sh && ./build.sh
 
 ## Architecture
 
-```
- ┌─────────────┐     ┌─────────────┐     ┌──────────────┐     ┌──────────┐
- │  "acid drum  │────▶│ prompt2spec │────▶│   forge.py   │────▶│  VST3/AU │
- │   machine"  │     │  (NLP → JSON)│     │ (JSON → C++) │     │  plugin  │
- └─────────────┘     └─────────────┘     └──────────────┘     └──────────┘
-                                                │
-                                     ┌──────────┴──────────┐
-                                     │   Archetype Router   │
-                                     │  (deterministic DSP  │
-                                     │   layer selection)   │
-                                     └──────────┬──────────┘
-                                                │
-              ┌──────────────────────────────────┴──────────────────────────────┐
-        PERCUSSIVE (6)                                             PITCHED (10)
-        ──────────                                                 ──────────
-        kick   → pitch sweep + sub                    bass_acid → ladder filter
-        snare  → body + noise                         lead      → SVF + PWM
-        hats   → ring mod metallic                    pad       → detuned saws
-        tom    → pitched body                         pluck     → Karplus-Strong
-        perc   → FM synthesis                         organ     → additive drawbar
-        clap   → multi-burst noise                    fm_synth  → 2-op FM
-                                                      noise     → filtered noise
-                                                      string    → ensemble detune
-                                                      brass     → resonant saw
-                                                      sub_bass  → sine + harmonics
+```mermaid
+flowchart LR
+    A["'acid drum machine'"] --> B["prompt2spec<br/>NLP → JSON"]
+    B --> C["forge.py<br/>JSON → C++"]
+    C --> D["VST3 / AU<br/>plugin"]
+
+    C --> R["Archetype Router"]
+
+    R --> P["PERCUSSIVE (6)"]
+    R --> T["PITCHED (10)"]
+
+    P --> P1["kick — pitch sweep + sub"]
+    P --> P2["snare — body + noise"]
+    P --> P3["hats — ring mod metallic"]
+    P --> P4["tom — pitched body"]
+    P --> P5["perc — FM synthesis"]
+    P --> P6["clap — multi-burst noise"]
+
+    T --> T1["bass_acid — ladder filter"]
+    T --> T2["lead — SVF + PWM"]
+    T --> T3["pad — detuned saws"]
+    T --> T4["pluck — Karplus-Strong"]
+    T --> T5["organ — additive drawbar"]
+    T --> T6["fm_synth — 2-op FM"]
+    T --> T7["noise — filtered noise"]
+    T --> T8["string — ensemble detune"]
+    T --> T9["brass — resonant saw"]
+    T --> T10["sub_bass — sine + harmonics"]
 ```
 
 ## 16 Voice Archetypes
