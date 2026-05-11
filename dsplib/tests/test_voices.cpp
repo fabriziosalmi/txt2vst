@@ -1,260 +1,115 @@
-// VST Forge — DSP Voice Test Harness
-// Validates audio output quality and CPU performance.
-//
-// Occam Guardrails tested:
-//  1. No NaN/Inf in output
-//  2. Peak amplitude < 1.5 (headroom before clipping)
-//  3. No DC offset > 0.01 after voice decay
-//  4. CPU: < 5% single core per voice at 44.1kHz
-//  5. Voice deactivates after decay (no infinite tails)
-//  6. No denormals (< 1e-15)
-//
-// Usage: g++ -std=c++17 -O2 -o test_voices test_voices.cpp && ./test_voices
-
+// VST Forge — DSP Voice Test Harness (10 archetypes)
+// Occam Guardrails: NaN/Inf, peak<1.5, DC<0.01, CPU<5%, deactivation, denormals
 #include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <chrono>
 #include <algorithm>
-#include <numeric>
 
-// Include production voices (DspConstants.h is in the same voices/ dir)
 #include "../voices/kick.h"
 #include "../voices/snare.h"
 #include "../voices/hats.h"
+#include "../voices/tom.h"
+#include "../voices/perc.h"
+#include "../voices/clap.h"
 #include "../voices/bass.h"
+#include "../voices/pad.h"
+#include "../voices/lead.h"
+#include "../voices/pluck.h"
 
-// ─── Test Framework ──────────────────────────────────────────────────────────
-
-struct TestResult
-{
-    const char* name;
-    bool passed;
-    // Audio metrics
-    float peakAmp;
-    float rmsLevel;
-    float dcOffset;      // mean of last 1000 samples (should be ~0)
-    int   activeSamples; // how many samples before isActive() returns false
-    bool  hasNaN;
-    bool  hasInf;
-    bool  hasDenormal;
-    // CPU metrics
-    double nsPerSample;
-    double cpuPercent;   // estimated % of single core at 44.1kHz
+struct TestResult {
+    const char* name; bool passed;
+    float peakAmp, rmsLevel, dcOffset;
+    int activeSamples; bool hasNaN, hasInf, hasDenormal;
+    double nsPerSample, cpuPercent;
 };
 
-static constexpr double SAMPLE_RATE = 44100.0;
-static constexpr int    TEST_DURATION_SAMPLES = 44100 * 3; // 3 seconds
-static constexpr int    WARMUP_TRIGGERS = 5;
+static constexpr double SR = 44100.0;
+static constexpr int DUR = 44100 * 3;
 
-// Shared analysis on a pre-rendered buffer
-static TestResult analyzeBuffer(const char* name, const float* buffer, int activeSamples,
-                                 double benchNsPerSample)
-{
-    TestResult r {};
-    r.name = name;
-    r.passed = true;
-    r.activeSamples = activeSamples;
-    r.nsPerSample = benchNsPerSample;
-    r.cpuPercent = (benchNsPerSample / (1e9 / SAMPLE_RATE)) * 100.0;
-
+static TestResult analyze(const char* name, const float* buf, int active, double ns) {
+    TestResult r{}; r.name = name; r.passed = true;
+    r.activeSamples = active; r.nsPerSample = ns;
+    r.cpuPercent = (ns / (1e9 / SR)) * 100.0;
     r.peakAmp = 0.0f;
-    for (int i = 0; i < TEST_DURATION_SAMPLES; ++i)
-        r.peakAmp = std::max(r.peakAmp, std::abs(buffer[i]));
-
-    int rmsLen = std::min(TEST_DURATION_SAMPLES, (int)(SAMPLE_RATE * 0.5));
-    double sumSq = 0.0;
-    for (int i = 0; i < rmsLen; ++i)
-        sumSq += static_cast<double>(buffer[i]) * buffer[i];
-    r.rmsLevel = static_cast<float>(std::sqrt(sumSq / rmsLen));
-
-    int dcStart = std::max(0, TEST_DURATION_SAMPLES - 1000);
-    double dcSum = 0.0;
-    for (int i = dcStart; i < TEST_DURATION_SAMPLES; ++i)
-        dcSum += static_cast<double>(buffer[i]);
-    r.dcOffset = static_cast<float>(dcSum / 1000.0);
-
+    for (int i = 0; i < DUR; ++i) r.peakAmp = std::max(r.peakAmp, std::abs(buf[i]));
+    int rmsLen = std::min(DUR, (int)(SR * 0.5));
+    double sq = 0; for (int i = 0; i < rmsLen; ++i) sq += (double)buf[i] * buf[i];
+    r.rmsLevel = (float)std::sqrt(sq / rmsLen);
+    double dc = 0; for (int i = DUR - 1000; i < DUR; ++i) dc += buf[i];
+    r.dcOffset = (float)(dc / 1000.0);
     r.hasNaN = r.hasInf = r.hasDenormal = false;
-    for (int i = 0; i < TEST_DURATION_SAMPLES; ++i)
-    {
-        if (std::isnan(buffer[i])) r.hasNaN = true;
-        if (std::isinf(buffer[i])) r.hasInf = true;
-        if (buffer[i] != 0.0f && std::abs(buffer[i]) < 1e-15f) r.hasDenormal = true;
+    for (int i = 0; i < DUR; ++i) {
+        if (std::isnan(buf[i])) r.hasNaN = true;
+        if (std::isinf(buf[i])) r.hasInf = true;
+        if (buf[i] != 0.0f && std::abs(buf[i]) < 1e-15f) r.hasDenormal = true;
     }
-
-    if (r.hasNaN) r.passed = false;
-    if (r.hasInf) r.passed = false;
-    if (r.hasDenormal) r.passed = false;
-    if (r.peakAmp > 1.5f) r.passed = false;
-    if (std::abs(r.dcOffset) > 0.01f) r.passed = false;
-    if (r.cpuPercent > 5.0) r.passed = false;
-    if (r.activeSamples > TEST_DURATION_SAMPLES - 100) r.passed = false;
-
+    if (r.hasNaN || r.hasInf || r.hasDenormal) r.passed = false;
+    if (r.peakAmp > 1.5f || std::abs(r.dcOffset) > 0.01f) r.passed = false;
+    if (r.cpuPercent > 5.0 || r.activeSamples > DUR - 100) r.passed = false;
     return r;
 }
 
-template<typename Voice>
-TestResult testDrumVoice(const char* name, Voice& voice)
-{
-    static float buffer[TEST_DURATION_SAMPLES];
-    voice.prepare(SAMPLE_RATE);
-    voice.trigger();
-    int lastActive = 0;
-    for (int i = 0; i < TEST_DURATION_SAMPLES; ++i)
-    {
-        buffer[i] = voice.tick();
-        if (voice.isActive()) lastActive = i;
-    }
-
-    // CPU benchmark
-    voice.prepare(SAMPLE_RATE);
-    constexpr int BS = 44100, RUNS = 20;
-    static float dummy[BS];
+template<typename V> TestResult testDrum(const char* n, V& v) {
+    static float buf[DUR]; v.prepare(SR); v.trigger();
+    int last = 0;
+    for (int i = 0; i < DUR; ++i) { buf[i] = v.tick(); if (v.isActive()) last = i; }
+    v.prepare(SR); static float d[44100];
     auto t0 = std::chrono::high_resolution_clock::now();
-    for (int r = 0; r < RUNS; ++r) { voice.trigger(); for (int i = 0; i < BS; ++i) dummy[i] = voice.tick(); }
+    for (int r = 0; r < 20; ++r) { v.trigger(); for (int i = 0; i < 44100; ++i) d[i] = v.tick(); }
     auto t1 = std::chrono::high_resolution_clock::now();
-    double ns = std::chrono::duration<double, std::nano>(t1 - t0).count() / (RUNS * BS);
-
-    return analyzeBuffer(name, buffer, lastActive, ns);
+    return analyze(n, buf, last, std::chrono::duration<double,std::nano>(t1-t0).count()/(20*44100));
 }
 
-TestResult testBassVoice(const char* name, BassVoice& voice)
-{
-    static float buffer[TEST_DURATION_SAMPLES];
-    voice.prepare(SAMPLE_RATE);
-    voice.trigger(48, 1.0f);
-    int lastActive = 0;
-    for (int i = 0; i < TEST_DURATION_SAMPLES; ++i)
-    {
-        buffer[i] = voice.tick();
-        if (voice.isActive()) lastActive = i;
-    }
-
-    voice.prepare(SAMPLE_RATE);
-    constexpr int BS = 44100, RUNS = 20;
-    static float dummy[BS];
+template<typename V> TestResult testPitched(const char* n, V& v) {
+    static float buf[DUR]; v.prepare(SR); v.trigger(48, 1.0f);
+    int last = 0;
+    for (int i = 0; i < DUR; ++i) { buf[i] = v.tick(); if (v.isActive()) last = i; }
+    v.prepare(SR); static float d[44100];
     auto t0 = std::chrono::high_resolution_clock::now();
-    for (int r = 0; r < RUNS; ++r) { voice.trigger(48, 1.0f); for (int i = 0; i < BS; ++i) dummy[i] = voice.tick(); }
+    for (int r = 0; r < 20; ++r) { v.trigger(48,1.0f); for (int i = 0; i < 44100; ++i) d[i] = v.tick(); }
     auto t1 = std::chrono::high_resolution_clock::now();
-    double ns = std::chrono::duration<double, std::nano>(t1 - t0).count() / (RUNS * BS);
-
-    return analyzeBuffer(name, buffer, lastActive, ns);
+    return analyze(n, buf, last, std::chrono::duration<double,std::nano>(t1-t0).count()/(20*44100));
 }
 
-static void printResult(const TestResult& r)
-{
-    const char* status = r.passed ? "✅ PASS" : "❌ FAIL";
-    printf("\n%s  %s\n", status, r.name);
-    printf("  ├── Peak: %.4f  RMS: %.4f  DC: %.6f\n", r.peakAmp, r.rmsLevel, r.dcOffset);
-    printf("  ├── Active: %d samples (%.2fs)\n", r.activeSamples, r.activeSamples / SAMPLE_RATE);
-    printf("  ├── CPU: %.1f ns/sample  (%.3f%% @ 44.1kHz)\n", r.nsPerSample, r.cpuPercent);
-    printf("  └── NaN:%s  Inf:%s  Denormal:%s\n",
-           r.hasNaN ? "YES" : "no", r.hasInf ? "YES" : "no", r.hasDenormal ? "YES" : "no");
-
-    // Guardrail details
-    if (!r.passed)
-    {
-        printf("  ⚠️  FAILURES:");
-        if (r.hasNaN)      printf(" [NaN detected]");
-        if (r.hasInf)      printf(" [Inf detected]");
-        if (r.hasDenormal) printf(" [Denormals]");
-        if (r.peakAmp > 1.5f) printf(" [Peak>1.5: %.2f]", r.peakAmp);
-        if (std::abs(r.dcOffset) > 0.01f) printf(" [DC offset: %.4f]", r.dcOffset);
-        if (r.cpuPercent > 5.0) printf(" [CPU>5%%: %.1f%%]", r.cpuPercent);
-        printf("\n");
-    }
+static void pr(const TestResult& r) {
+    printf("\n%s  %s\n", r.passed?"✅ PASS":"❌ FAIL", r.name);
+    printf("  ├── Peak:%.4f RMS:%.4f DC:%.6f Active:%.2fs\n", r.peakAmp,r.rmsLevel,r.dcOffset,r.activeSamples/SR);
+    printf("  └── CPU:%.1fns (%.3f%%) NaN:%s Inf:%s Den:%s\n", r.nsPerSample,r.cpuPercent,
+           r.hasNaN?"Y":"n",r.hasInf?"Y":"n",r.hasDenormal?"Y":"n");
 }
 
-int main()
-{
+int main() {
     printf("═══════════════════════════════════════════════════\n");
-    printf("  VST Forge — DSP Voice Test Suite\n");
-    printf("  Sample Rate: %.0f Hz\n", SAMPLE_RATE);
-    printf("  Test Duration: %.1f sec\n", TEST_DURATION_SAMPLES / SAMPLE_RATE);
+    printf("  txt2vst — DSP Test Suite (10 archetypes)\n");
     printf("═══════════════════════════════════════════════════\n");
+    int ok=0,tot=0;
+    auto run = [&](TestResult r){ pr(r); if(r.passed)ok++; tot++; };
 
-    int passed = 0, total = 0;
+    { KickVoice v; v.setParams({60,0.45f,0.4f,0.8f,0.3f,0.5f}); run(testDrum("Kick",v)); }
+    { KickVoice v; v.setParams({40,0.8f,1,1,1,1}); run(testDrum("Kick(max)",v)); }
+    { SnareVoice v; v.setParams({185,0.18f,0.5f,0.6f}); run(testDrum("Snare",v)); }
+    { SnareVoice v; v.setParams({400,0.4f,1,1}); run(testDrum("Snare(max)",v)); }
+    { HatsVoice v; v.setParams({0.08f,0.5f,0.3f}); run(testDrum("Hats",v)); }
+    { HatsVoice v; v.setParams({0.5f,1,1}); run(testDrum("Hats(max)",v)); }
+    { TomVoice v; v.setParams({90,0.3f,0.65f,0.2f}); run(testDrum("Tom",v)); }
+    { TomVoice v; v.setParams({200,0.8f,1,1}); run(testDrum("Tom(max)",v)); }
+    { PercVoice v; v.setParams({600,0.1f,0.4f,0.3f}); run(testDrum("Perc/FM",v)); }
+    { PercVoice v; v.setParams({2000,0.5f,1,1}); run(testDrum("Perc(max)",v)); }
+    { ClapVoice v; v.setParams({0.2f,0.5f,0.4f}); run(testDrum("Clap",v)); }
+    { ClapVoice v; v.setParams({0.5f,1,1}); run(testDrum("Clap(max)",v)); }
+    { BassVoice v; v.setParams({800,0.15f,0.2f,0.3f,0}); run(testPitched("Bass303",v)); }
+    { BassVoice v; v.setParams({350,0.95f,0.9f,0.1f,1}); run(testPitched("Bass(acid)",v)); }
+    { BassVoice v; v.setParams({20000,1,1,1,1}); run(testPitched("Bass(stress)",v)); }
+    { PadVoice v; v.setParams({2000,0.2f,0.3f,1.5f,0.1f}); run(testPitched("Pad",v)); }
+    { LeadVoice v; v.setParams({4000,0.3f,0.5f,0.5f,0.3f}); run(testPitched("Lead",v)); }
+    { LeadVoice v; v.setParams({18000,0.95f,0.1f,0.1f,1}); run(testPitched("Lead(stress)",v)); }
+    { PluckVoice v; v.setParams({0.8f,0.5f,0.3f}); run(testPitched("Pluck",v)); }
+    { PluckVoice v; v.setParams({3.0f,1,1}); run(testPitched("Pluck(long)",v)); }
 
-    // ── Test Kick ──
-    {
-        KickVoice kick;
-        kick.setParams({ 60.0f, 0.45f, 0.40f, 0.80f, 0.30f, 0.50f });
-        auto r = testDrumVoice("Kick (default)", kick);
-        printResult(r);
-        if (r.passed) passed++;
-        total++;
-
-        // Extreme params
-        kick.setParams({ 40.0f, 0.80f, 1.0f, 1.0f, 1.0f, 1.0f });
-        r = testDrumVoice("Kick (extreme)", kick);
-        printResult(r);
-        if (r.passed) passed++;
-        total++;
-    }
-
-    // ── Test Snare ──
-    {
-        SnareVoice snare;
-        snare.setParams({ 185.0f, 0.18f, 0.50f, 0.60f });
-        auto r = testDrumVoice("Snare (default)", snare);
-        printResult(r);
-        if (r.passed) passed++;
-        total++;
-
-        snare.setParams({ 400.0f, 0.40f, 1.0f, 1.0f });
-        r = testDrumVoice("Snare (extreme)", snare);
-        printResult(r);
-        if (r.passed) passed++;
-        total++;
-    }
-
-    // ── Test Hats ──
-    {
-        HatsVoice hats;
-        hats.setParams({ 0.08f, 0.50f, 0.30f });
-        auto r = testDrumVoice("Hats (default)", hats);
-        printResult(r);
-        if (r.passed) passed++;
-        total++;
-
-        hats.setParams({ 0.50f, 1.0f, 1.0f });
-        r = testDrumVoice("Hats (extreme)", hats);
-        printResult(r);
-        if (r.passed) passed++;
-        total++;
-    }
-
-    // ── Test Bass ──
-    {
-        BassVoice bass;
-        bass.setParams({ 800.0f, 0.15f, 0.20f, 0.30f, 0.00f });
-        auto r = testBassVoice("Bass303 (default)", bass);
-        printResult(r);
-        if (r.passed) passed++;
-        total++;
-
-        bass.setParams({ 350.0f, 0.95f, 0.90f, 0.10f, 1.0f });
-        r = testBassVoice("Bass303 (acid extreme)", bass);
-        printResult(r);
-        if (r.passed) passed++;
-        total++;
-
-        // Self-oscillation stress test
-        bass.setParams({ 20000.0f, 1.0f, 1.0f, 1.0f, 1.0f });
-        r = testBassVoice("Bass303 (self-osc stress)", bass);
-        printResult(r);
-        if (r.passed) passed++;
-        total++;
-    }
-
-    // ── Summary ──
     printf("\n═══════════════════════════════════════════════════\n");
-    printf("  Results: %d/%d passed\n", passed, total);
-    if (passed == total)
-        printf("  🎉 All Occam guardrails satisfied!\n");
-    else
-        printf("  ⚠️  %d guardrail violation(s) — investigate before shipping\n", total - passed);
+    printf("  Results: %d/%d passed\n", ok, tot);
+    printf("  %s\n", ok==tot?"🎉 All Occam guardrails satisfied!":"⚠️ Violations detected");
     printf("═══════════════════════════════════════════════════\n\n");
-
-    return (passed == total) ? 0 : 1;
+    return ok==tot?0:1;
 }
