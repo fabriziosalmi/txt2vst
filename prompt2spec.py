@@ -23,7 +23,7 @@ DRUM_ARCHETYPES = {
 }
 
 PITCHED_ARCHETYPES = {
-    "bass303": {"params": ["cutoff","reso","envmod","decay","accent"],
+    "bass_acid": {"params": ["cutoff","reso","envmod","decay","accent"],
                 "aliases": ["bass","acid","303","bassline","acid bass"]},
     "lead":    {"params": ["cutoff","reso","pw","decay","envmod"],
                 "aliases": ["lead","synth lead","mono lead","solo"]},
@@ -109,10 +109,10 @@ def parse_prompt(text: str) -> dict:
         if any(w in text_lower for w in ["drum", "beat", "rhythm", "groove", "groovebox"]):
             detected_drums = ["kick", "snare", "hats", "clap"]
         elif any(w in text_lower for w in ["synth", "synthesizer", "keys"]):
-            detected_pitched = ["bass303", "lead", "pad"]
+            detected_pitched = ["bass_acid", "lead", "pad"]
         else:
             detected_drums = ["kick", "snare", "hats"]
-            detected_pitched = ["bass303"]
+            detected_pitched = ["bass_acid"]
 
     # Adjust to target channel count if specified
     all_voices = detected_drums + detected_pitched
@@ -144,7 +144,10 @@ def parse_prompt(text: str) -> dict:
 
     # Detect theme
     theme = "midnight"  # default
-    for t in ["acid","ember","frost","neon","vapor","industrial","solar","midnight"]:
+    for t in ["acid","ember","frost","neon","vapor","industrial","solar",
+               "void","obsidian","glow","strobe","matrix","copper","candy",
+               "chrome","arctic","terminal","hologram","white","cream",
+               "blood","lavender","midnight"]:
         if t in text_lower:
             theme = t
             break
@@ -182,7 +185,7 @@ def parse_prompt(text: str) -> dict:
     midi_ch = 2  # MIDI channel for pitched voices
     for arch_id in detected_pitched:
         info = PITCHED_ARCHETYPES[arch_id]
-        ch_name = arch_id.capitalize() if arch_id != "bass303" else "Acid"
+        ch_name = arch_id.capitalize() if arch_id != "bass_acid" else "Acid"
         channels.append({"name": ch_name, "type": "pitched", "midi_ch": midi_ch})
         voices.append({"name": ch_name, "params": info["params"]})
         midi_ch += 1

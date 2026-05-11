@@ -86,7 +86,7 @@ def generate(spec_path: str, output_dir: str):
         if dsp_file and dsp_file.exists():
             content = dsp_file.read_text()
             arch_class = {"kick": "KickVoice", "snare": "SnareVoice",
-                          "hats": "HatsVoice", "bass303": "BassVoice",
+                          "hats": "HatsVoice", "bass_acid": "BassVoice",
                           "tom": "TomVoice", "perc": "PercVoice",
                           "clap": "ClapVoice", "pad": "PadVoice",
                           "lead": "LeadVoice", "pluck": "PluckVoice",

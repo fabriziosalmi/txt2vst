@@ -14,7 +14,7 @@
 //  ┌──────────────────────────────────────────────────────────┐
 //  │  PERCUSSIVE (drum)           │  PITCHED (synth/bass)     │
 //  │  ─────────────────           │  ────────────────────     │
-//  │  kick   — pitch sweep + sub  │  bass303 — ladder filter  │
+//  │  kick   — pitch sweep + sub  │  bass_acid — ladder filter  │
 //  │  snare  — body + noise       │  pad     — (future)       │
 //  │  hats   — ring mod metallic  │  lead    — (future)       │
 //  │  tom    — pitched body       │  organ   — (future)       │
@@ -31,16 +31,16 @@
 //    ├─ has "tune" + "pitchenv"?                  → tom
 //    └─ default                                   → perc (FM/noise)
 //  voice.type == "pitched"?
-//    ├─ has "cutoff" + "reso"?                    → bass303
+//    ├─ has "cutoff" + "reso"?                    → bass_acid
 //    ├─ has "attack" + decay > 1.0?               → pad
-//    └─ default                                   → bass303
+//    └─ default                                   → bass_acid
 
 #include <string>
 #include <vector>
 
 struct ArchetypeInfo
 {
-    const char* id;          // "kick", "snare", "hats", "tom", "perc", "bass303"
+    const char* id;          // "kick", "snare", "hats", "tom", "perc", "bass_acid"
     const char* header;      // "kick.h"
     const char* className;   // "KickVoice"
     int cpuBudget;           // ops/sample estimate
@@ -53,6 +53,6 @@ static const ArchetypeInfo ARCHETYPES[] = {
     { "hats",    "hats.h",    "HatsVoice",  10, false },
     { "tom",     "tom.h",     "TomVoice",    8, false },
     { "perc",    "perc.h",    "PercVoice",   8, false },
-    { "bass303", "bass.h",    "BassVoice",  25, true  },
+    { "bass_acid", "bass.h",    "BassVoice",  25, true  },
 };
 static constexpr int NUM_ARCHETYPES = sizeof(ARCHETYPES) / sizeof(ARCHETYPES[0]);

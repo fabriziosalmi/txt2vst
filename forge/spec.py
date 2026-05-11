@@ -27,7 +27,7 @@ ARCHETYPE_MAP = {
     "tom":     "tom.h",
     "perc":    "perc.h",
     "clap":    "clap.h",
-    "bass303": "bass.h",
+    "bass_acid": "bass.h",
     "pad":     "pad.h",
     "lead":    "lead.h",
     "pluck":    "pluck.h",
@@ -48,8 +48,8 @@ def route_archetype(voice: dict, channel: dict) -> str | None:
         if "cutoff" in params and "reso" in params:
             if "attack" in params and voice.get("decay", 0) > 1.0: return "pad"
             if "pw" in params: return "lead"
-            if "envmod" in params: return "bass303"
-            return "bass303"
+            if "envmod" in params: return "bass_acid"
+            return "bass_acid"
         if "bright" in params or "body" in params: return "pluck"
         if "attack" in params: return "pad"
         if "pad" in name_lower: return "pad"

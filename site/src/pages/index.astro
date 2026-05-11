@@ -12,7 +12,7 @@ const archetypes = [
   { name: "Tom", engine: "Pitched sine + exponential pitch sweep", cpu: "4ns", pct: "0.02%", icon: "music" },
   { name: "Perc/FM", engine: "FM carrier/modulator + index envelope", cpu: "8ns", pct: "0.03%", icon: "sparkles" },
   { name: "Clap", engine: "4 micro-bursts + diffuse tail + bandpass", cpu: "4ns", pct: "0.02%", icon: "hand" },
-  { name: "Bass 303", engine: "PolyBLEP + 4-pole diode ladder filter", cpu: "67ns", pct: "0.30%", icon: "guitar" },
+  { name: "Bass Acid", engine: "PolyBLEP + 4-pole diode ladder filter", cpu: "67ns", pct: "0.30%", icon: "guitar" },
   { name: "Lead", engine: "PolyBLEP pulse/PWM + SVF + portamento", cpu: "8ns", pct: "0.03%", icon: "piano" },
   { name: "Pad", engine: "Detuned saws + sub + LP filter + ADSR", cpu: "8ns", pct: "0.03%", icon: "wind" },
   { name: "Pluck", engine: "Karplus-Strong physical model + damping", cpu: "5ns", pct: "0.02%", icon: "waves" },
@@ -37,13 +37,28 @@ const fxTypes = [
 
 const themes = [
   { name: "Midnight", colors: ["#0d0d1a","#1a1a2e","#00c896"] },
+  { name: "Void", colors: ["#050508","#0a0a10","#8888ff"] },
+  { name: "Obsidian", colors: ["#080808","#141414","#a0a0a0"] },
   { name: "Acid", colors: ["#0a0f0a","#142014","#39ff14"] },
-  { name: "Ember", colors: ["#140a08","#261410","#ff6b35"] },
-  { name: "Frost", colors: ["#080c14","#101828","#5ebaff"] },
   { name: "Neon", colors: ["#0a0010","#180028","#ff00ff"] },
+  { name: "Glow", colors: ["#060612","#0e0e22","#00ffcc"] },
+  { name: "Strobe", colors: ["#0a0a0a","#151515","#ffff00"] },
+  { name: "Matrix", colors: ["#000a00","#001400","#00ff41"] },
+  { name: "Ember", colors: ["#140a08","#261410","#ff6b35"] },
+  { name: "Solar", colors: ["#100c04","#201808","#ffc107"] },
+  { name: "Copper", colors: ["#0e0a08","#1c1410","#cc7744"] },
+  { name: "Candy", colors: ["#120810","#221018","#ff66aa"] },
+  { name: "Frost", colors: ["#080c14","#101828","#5ebaff"] },
+  { name: "Chrome", colors: ["#0c0c10","#18181e","#c0c0d0"] },
+  { name: "Arctic", colors: ["#040810","#0a1420","#88ddff"] },
   { name: "Vapor", colors: ["#0a0818","#1a1030","#ff71ce"] },
   { name: "Industrial", colors: ["#0c0c0c","#1a1a1a","#ff8800"] },
-  { name: "Solar", colors: ["#100c04","#201808","#ffc107"] },
+  { name: "Terminal", colors: ["#000000","#0a0a0a","#33ff33"] },
+  { name: "Hologram", colors: ["#060818","#0e1228","#44eeff"] },
+  { name: "White", colors: ["#f0f0f4","#ffffff","#2266cc"] },
+  { name: "Cream", colors: ["#f5f0e8","#fffaf4","#996633"] },
+  { name: "Blood", colors: ["#100404","#200a0a","#ff2222"] },
+  { name: "Lavender", colors: ["#0c0810","#181420","#aa88ff"] },
 ];
 
 const guardrails = [
@@ -69,7 +84,7 @@ const iconMap: Record<string, any> = {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>txt2vst — Text to VST in One Command</title>
-  <meta name="description" content="Generate production-grade VST3/AU instruments from natural language. 16 voice + 8 FX archetypes, 40/40 Occam guardrails, 8 UI themes." />
+  <meta name="description" content="Generate production-grade VST3/AU instruments from natural language. 16 voice + 8 FX archetypes, 40/40 Occam guardrails, 24 UI themes." />
   <meta property="og:title" content="txt2vst — Text to VST" />
   <meta property="og:description" content="Generate production VST instruments from text. 10 archetypes, Occam guardrails." />
   <meta property="og:type" content="website" />
@@ -86,10 +101,10 @@ const iconMap: Record<string, any> = {
     <div class="hero-glow"></div>
     <div class="hero-grid"></div>
     <div class="hero-content">
-      <div class="badge"><ShieldCheck size={14} /> Open Source &middot; 16 Voices + 8 FX &middot; 40/40 Tests</div>
+      <div class="badge"><ShieldCheck size={14} /> Open Source &middot; 16 Voices + 8 FX &middot; 46/46 Tests</div>
       <h1>txt<span class="accent">2</span>vst</h1>
       <p class="tagline">Text &rarr; VST in One Command</p>
-      <p class="subtitle">Generate production-grade VST3/AU instruments from natural language.<br/>16 voice engines. 8 FX processors. 8 UI themes. Zero friction.</p>
+      <p class="subtitle">Generate production-grade VST3/AU instruments from natural language.<br/>16 voice engines. 8 FX processors. 24 UI themes. Zero friction.</p>
 
       <div class="terminal">
         <div class="terminal-bar">
@@ -249,7 +264,7 @@ const iconMap: Record<string, any> = {
 
   <section class="section section-dark" id="themes">
     <div class="container">
-      <h2 class="section-title">8 UI Themes</h2>
+      <h2 class="section-title">24 UI Themes</h2>
       <p class="section-sub">Set <code style="color:var(--accent);">"theme": "acid"</code> in your spec and the generated plugin gets a matching color palette.</p>
       <div class="theme-grid">
         {themes.map(t => (
@@ -861,14 +876,16 @@ const iconMap: Record<string, any> = {
   const VOICES = [
     {id:"kick",t:"drum"},{id:"snare",t:"drum"},{id:"hats",t:"drum"},
     {id:"tom",t:"drum"},{id:"perc",t:"drum"},{id:"clap",t:"drum"},
-    {id:"bass303",t:"pitched",label:"Bass 303"},{id:"lead",t:"pitched"},
+    {id:"bass_acid",t:"pitched",label:"Bass Acid"},{id:"lead",t:"pitched"},
     {id:"pad",t:"pitched"},{id:"pluck",t:"pitched"},{id:"organ",t:"pitched"},
     {id:"fm_synth",t:"pitched",label:"FM Synth"},{id:"noise",t:"pitched"},
     {id:"string",t:"pitched"},{id:"brass",t:"pitched"},
     {id:"sub_bass",t:"pitched",label:"Sub Bass"}
   ];
   const FX = ["delay","reverb","chorus","compressor","distortion","phaser","eq","gate"];
-  const THEMES = ["midnight","acid","ember","frost","neon","vapor","industrial","solar"];
+  const THEMES = ["midnight","void","obsidian","acid","neon","glow","strobe","matrix",
+                   "ember","solar","copper","candy","frost","chrome","arctic",
+                   "vapor","industrial","terminal","hologram","white","cream","blood","lavender"];
   const MASTERS = ["bypass","transparent","punch","wet","radio","distorted","wide"];
   const NAMES = ["AcidBox","NeuroSynth","VoidDrum","SubStation","OrbitPad","CrushLab",
                   "NeonPulse","FrostBite","GlitchKit","SolarWave","BrassHammer","HazeEngine",
@@ -983,7 +1000,7 @@ const iconMap: Record<string, any> = {
       kick:['tune','decay','punch','sub'], snare:['tune','decay','snap','noise'],
       hats:['tune','decay','tone','body'], tom:['tune','decay','pitchenv','attack'],
       perc:['tune','decay','detune','drive'], clap:['decay','spread','attack'],
-      bass303:['cutoff','reso','envmod','decay','accent'], lead:['cutoff','reso','pw','decay','detune'],
+      bass_acid:['cutoff','reso','envmod','decay','accent'], lead:['cutoff','reso','pw','decay','detune'],
       pad:['cutoff','reso','attack','release','detune'], pluck:['decay','bright','body'],
       organ:['decay','rotary'], fm_synth:['ratio','index','decay','feedback'],
       noise:['cutoff','reso','decay','color'],
