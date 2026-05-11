@@ -11,7 +11,7 @@ def gen_editor_cpp(spec: dict) -> str:
     L.append(f'#include "core/ParamIds.h"')
     L.append("")
     L.append(f"{name}Editor::{name}Editor({name}Processor& p)")
-    L.append(f"    : AudioProcessorEditor(&p), processorRef(p),")
+    L.append(f"    : AudioProcessorEditor(&p),")
     L.append(f"      stepGrid(p.sequencer, p.voiceBank, p.apvts, p.currentBpm)")
     L.append("{")
     L.append(f"    setSize({ui[0]}, {ui[1]});")
@@ -55,7 +55,6 @@ def gen_editor_h(spec: dict) -> str:
     L.append("    void resized() override;")
     L.append("private:")
     L.append("    static constexpr int TITLE_H = 28;")
-    L.append(f"    {name}Processor& processorRef;")
     L.append("    SpaceLookAndFeel spaceLnf;")
     L.append("    StepGrid stepGrid;")
     L.append(f"    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR({name}Editor)")
@@ -102,7 +101,7 @@ def gen_stepgrid_h(spec: dict) -> str:
     channels = spec["channels"]
     pitched = [(i, c) for i, c in enumerate(channels) if c["type"] == "pitched"]
     n = len(channels)
-    bass_extra = f"static constexpr int BASS_EXTRA = SUB_ROW_H * 2;" if pitched else ""
+
     L = []
     L.append("#pragma once")
     L.append("#include <JuceHeader.h>")
@@ -163,7 +162,7 @@ def gen_stepgrid_h(spec: dict) -> str:
     L.append(f"    std::array<ParamKnobGroup, {n}> chParams;")
     L.append(f"    std::array<int, {n}> lastStep {{}};")
     L.append("    juce::Rectangle<int> stepRect(int ch, int vs) const;")
-    L.append("    std::pair<int,int> hitTest(int x, int y) const;")
+    L.append("    std::pair<int,int> cellAtPoint(int x, int y) const;")
     L.append("    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StepGrid)")
     L.append("};")
     L.append("")
@@ -178,9 +177,11 @@ def gen_stepgrid_cpp(spec: dict) -> str:
     pitched_indices = [i for i, c in enumerate(channels) if c["type"] == "pitched"]
     first_pi = pitched_indices[0] if pitched_indices else n
 
-    # Channel colors
+    # Channel colors (16 entries for max channel count)
     colors = ["0xff00c896","0xffe8b838","0xff6ec6ff","0xffff6b6b",
-              "0xffa855f7","0xffff9f43","0xff2ed573","0xffff6348"]
+              "0xffa855f7","0xffff9f43","0xff2ed573","0xffff6348",
+              "0xff56b4e9","0xffe69f00","0xff009e73","0xffcc79a7",
+              "0xff0072b2","0xfff0e442","0xffd55e00","0xff44aa99"]
 
     L = []
     L.append('#include "StepGrid.h"')
@@ -254,8 +255,8 @@ def gen_stepgrid_cpp(spec: dict) -> str:
     L.append("}")
     L.append("")
 
-    # hitTest
-    L.append("std::pair<int,int> StepGrid::hitTest(int x, int y) const")
+    # cellAtPoint
+    L.append("std::pair<int,int> StepGrid::cellAtPoint(int x, int y) const")
     L.append("{")
     L.append(f"    for (int ch = 0; ch < {n}; ++ch) {{")
     L.append("        int ry = rowY(ch);")
@@ -272,7 +273,7 @@ def gen_stepgrid_cpp(spec: dict) -> str:
     # mouseDown
     L.append("void StepGrid::mouseDown(const juce::MouseEvent& e)")
     L.append("{")
-    L.append("    auto [ch, step] = hitTest(e.x, e.y);")
+    L.append("    auto [ch, step] = cellAtPoint(e.x, e.y);")
     L.append("    if (ch < 0) return;")
     L.append("    sequencer.toggleStep(ch, step);")
     L.append("    if (sequencer.getStep(ch, step)) voiceBank.requestTrigger(ch);")

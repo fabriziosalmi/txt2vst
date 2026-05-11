@@ -62,8 +62,6 @@ def gen_param_ids(spec: dict) -> str:
         lines.append('    constexpr const char* SWING = "swing";')
     # Master FX
     fx_list = spec["features"].get("master_fx", [])
-    if "drive" in fx_list:
-        lines.append('    constexpr const char* MASTER_DRIVE = "master_drive";')
     if "delay" in fx_list:
         lines.append('    constexpr const char* DELAY_TIME = "delay_time";')
         lines.append('    constexpr const char* DELAY_FB = "delay_fb";')
@@ -72,7 +70,9 @@ def gen_param_ids(spec: dict) -> str:
     if spec["features"].get("sidechain"):
         pitched = [c for c in channels if c["type"] == "pitched"]
         for c in pitched:
-            lines.append(f'    constexpr const char* SC_{const_name(c["name"])} = "sc_{c["name"].lower()}";')
+            cn = const_name(c["name"])
+            clow = c["name"].lower()
+            lines.append(f'    constexpr const char* SC_{cn} = "sc_{clow}";')
         lines.append('    constexpr const char* SC_RELEASE = "sc_release";')
 
     lines.append("}")
@@ -115,21 +115,32 @@ def gen_param_layout(spec: dict) -> str:
     lines.append("            juce::NormalisableRange<float>(0.f, 1.f), 0.5f));")
     lines.append("")
 
+    # Sensible defaults per param type
+    PARAM_DEFAULTS = {
+        "cutoff": "0.7f", "reso": "0.25f", "attack": "0.1f", "release": "0.4f",
+        "decay": "0.4f", "drive": "0.2f", "accent": "0.5f", "envmod": "0.5f",
+        "tune": "0.5f", "tone": "0.5f", "punch": "0.5f", "pitchenv": "0.5f",
+        "sub": "0.5f", "snap": "0.5f", "noise": "0.5f", "body": "0.5f",
+        "spread": "0.5f", "bright": "0.5f", "pw": "0.5f", "detune": "0.3f",
+        "rotary": "0.0f", "ratio": "0.5f", "index": "0.4f", "feedback": "0.2f",
+        "color": "0.5f", "harmonics": "0.3f",
+    }
+
     for v in voices:
         vupper = v["name"].upper()
         lines.append(f"    // {v['name']}")
         for p in v["params"]:
             pid = f"ParamId::{vupper}_{p.upper()}"
             disp = f'"{v["name"]} {p.capitalize()}"'
-            lines.append(f"    addF({pid}, {disp}, 0.f, 1.f, 0.01f, 0.5f);")
+            default = PARAM_DEFAULTS.get(p, "0.5f")
+            lines.append(f"    addF({pid}, {disp}, 0.f, 1.f, 0.01f, {default});")
         lines.append("")
 
     if spec["features"].get("swing"):
         lines.append('    addF(ParamId::SWING, "Swing", 0.f, 1.f, 0.01f, 0.f);')
 
     fx_list = spec["features"].get("master_fx", [])
-    if "drive" in fx_list:
-        lines.append('    addF(ParamId::MASTER_DRIVE, "Drive", 0.f, 1.f, 0.01f, 0.f);')
+
     if "delay" in fx_list:
         lines.append('    addF(ParamId::DELAY_TIME, "Delay Time", 0.01f, 1.f, 0.001f, 0.375f);')
         lines.append('    addF(ParamId::DELAY_FB, "Delay Feedback", 0.f, 0.90f, 0.01f, 0.40f);')
@@ -151,8 +162,9 @@ def gen_param_layout_h() -> str:
         #pragma once
         #include <JuceHeader.h>
 
-        namespace ParamLayout {
-            juce::AudioProcessorValueTreeState::ParameterLayout create();
+        namespace ParamLayout
+        {
+        juce::AudioProcessorValueTreeState::ParameterLayout create();
         }
     """)
 
@@ -169,7 +181,7 @@ def gen_voice_stub(voice: dict) -> str:
     L.append("#include <cmath>")
     L.append('#include "DspConstants.h"')
     L.append("")
-    L.append(f"// TODO: Replace stub DSP with production-grade synthesis")
+    L.append(f"// Stub DSP — replaced by archetype when matched")
     L.append(f"class {name}")
     L.append("{")
     L.append("public:")
