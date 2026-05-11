@@ -211,10 +211,10 @@ def parse_prompt(text: str) -> dict:
         voices.append({"name": ch_name, "params": info["params"]})
         midi_ch += 1
 
-    # Generate 4-char codes (must be valid C++ identifier — no leading digits)
+    # Generate prefix and 4-char code (must be valid C++ identifier, no leading digits)
     safe_name = re.sub(r'^[^a-zA-Z]+', '', plugin_name) or "MyPlugin"
     prefix = safe_name[:3].upper() if len(safe_name) >= 3 else "PLG"
-    code = (safe_name[:4].capitalize() if len(safe_name) >= 4 else "Plgn")
+    code = safe_name[:4].capitalize().ljust(4, 'x')  # JUCE requires exactly 4 chars
 
     features = {
         "sequencer": has_sequencer or len(detected_drums) > 0,

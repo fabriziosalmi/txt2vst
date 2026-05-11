@@ -30,7 +30,7 @@ def generate(spec_path: str, output_dir: str):
     out = Path(output_dir)
     name = spec["plugin"]["name"]
 
-    print(f"🔨 VST Forge — generating {name} → {out}")
+    print(f"VST Forge: generating {name} -> {out}")
 
     for d in ["src", "src/core", "src/voices", "src/ui"]:
         (out / d).mkdir(parents=True, exist_ok=True)
@@ -48,7 +48,7 @@ def generate(spec_path: str, output_dir: str):
         # MasterChain needs DspConstants too
         shutil.copy(FORGE_DIR / "dsplib" / "DspConstants.h",
                     out / "src" / "fx" / "DspConstants.h")
-        print(f"  🎛️  Master chain: {mastering}")
+        print(f"  Master chain: {mastering}")
 
     # Generated files
     files = {
@@ -81,35 +81,29 @@ def generate(spec_path: str, output_dir: str):
         seen_classes.add(cls)
 
         archetype = route_archetype(v, c)
-        dsp_file = DSPLIB / ARCHETYPE_MAP.get(archetype, "") if archetype else None
+        arch_info = ARCHETYPE_MAP.get(archetype) if archetype else None
+        dsp_file = DSPLIB / arch_info["file"] if arch_info else None
 
         if dsp_file and dsp_file.exists():
             content = dsp_file.read_text()
-            arch_class = {"kick": "KickVoice", "snare": "SnareVoice",
-                          "hats": "HatsVoice", "bass_acid": "BassVoice",
-                          "tom": "TomVoice", "perc": "PercVoice",
-                          "clap": "ClapVoice", "pad": "PadVoice",
-                          "lead": "LeadVoice", "pluck": "PluckVoice",
-                          "organ": "OrganVoice", "fm_synth": "FMSynthVoice",
-                          "noise": "NoiseVoice", "string": "StringVoice",
-                          "brass": "BrassVoice", "sub_bass": "SubBassVoice"}.get(archetype)
-            if arch_class and arch_class != cls:
+            arch_class = arch_info["class"]
+            if arch_class != cls:
                 content = content.replace(f"class {arch_class}", f"class {cls}")
                 content = content.replace(f"struct {arch_class}", f"struct {cls}")
             files[f"src/voices/{cls}.h"] = content
-            print(f"  🎯 {cls} ← dsplib/{archetype} (production)")
+            print(f"  {cls} <- dsplib/{archetype}")
         else:
             v_copy = dict(v)
             v_copy["type"] = c["type"]
             files[f"src/voices/{cls}.h"] = gen_voice_stub(v_copy)
-            print(f"  📝 {cls} ← stub (needs DSP implementation)")
+            print(f"  {cls} <- stub")
 
     # Write all files
     for path, content in files.items():
         fp = out / path
         fp.write_text(content)
         if not path.startswith("src/voices/"):
-            print(f"  ✅ {path}")
+            print(f"  + {path}")
 
     total_loc = sum(len(c.splitlines()) for c in files.values())
-    print(f"\n🎉 Generated {len(files)} files, ~{total_loc} LOC")
+    print(f"\nGenerated {len(files)} files, ~{total_loc} LOC")

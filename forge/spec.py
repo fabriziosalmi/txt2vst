@@ -1,6 +1,6 @@
 """forge.spec — Spec loading, utilities, archetype routing."""
 
-import json
+import json, re
 from pathlib import Path
 
 FORGE_DIR = Path(__file__).parent.parent
@@ -10,33 +10,39 @@ DSPLIB = FORGE_DIR / "dsplib" / "voices"
 
 def load_spec(path: str) -> dict:
     with open(path) as f:
-        return json.load(f)
+        spec = json.load(f)
+    for key in ("plugin", "channels", "voices", "features"):
+        if key not in spec:
+            raise ValueError(f"spec.json missing required key: '{key}'")
+    if not spec["channels"]:
+        raise ValueError("spec.json has empty 'channels'")
+    return spec
 
 
 def const_name(name: str) -> str:
-    """Kick -> KICK, Bass1 -> BASS1"""
-    return name.upper().replace(" ", "_")
+    """Kick -> KICK, FM-Synth -> FM_SYNTH, Bass1 -> BASS1"""
+    return re.sub(r'[^A-Z0-9]', '_', name.upper()).strip('_')
 
 
 # ── Archetype Router ─────────────────────────────────────────────────────────
 
 ARCHETYPE_MAP = {
-    "kick":    "kick.h",
-    "snare":   "snare.h",
-    "hats":    "hats.h",
-    "tom":     "tom.h",
-    "perc":    "perc.h",
-    "clap":    "clap.h",
-    "bass_acid": "bass.h",
-    "pad":     "pad.h",
-    "lead":    "lead.h",
-    "pluck":    "pluck.h",
-    "organ":    "organ.h",
-    "fm_synth": "fm_synth.h",
-    "noise":    "noise.h",
-    "string":   "string_voice.h",
-    "brass":    "brass.h",
-    "sub_bass": "sub_bass.h",
+    "kick":      {"file": "kick.h",         "class": "KickVoice"},
+    "snare":     {"file": "snare.h",        "class": "SnareVoice"},
+    "hats":      {"file": "hats.h",         "class": "HatsVoice"},
+    "tom":       {"file": "tom.h",          "class": "TomVoice"},
+    "perc":      {"file": "perc.h",         "class": "PercVoice"},
+    "clap":      {"file": "clap.h",         "class": "ClapVoice"},
+    "bass_acid": {"file": "bass.h",         "class": "BassVoice"},
+    "pad":       {"file": "pad.h",          "class": "PadVoice"},
+    "lead":      {"file": "lead.h",         "class": "LeadVoice"},
+    "pluck":     {"file": "pluck.h",        "class": "PluckVoice"},
+    "organ":     {"file": "organ.h",        "class": "OrganVoice"},
+    "fm_synth":  {"file": "fm_synth.h",     "class": "FMSynthVoice"},
+    "noise":     {"file": "noise.h",        "class": "NoiseVoice"},
+    "string":    {"file": "string_voice.h", "class": "StringVoice"},
+    "brass":     {"file": "brass.h",        "class": "BrassVoice"},
+    "sub_bass":  {"file": "sub_bass.h",     "class": "SubBassVoice"},
 }
 
 
@@ -46,7 +52,7 @@ def route_archetype(voice: dict, channel: dict) -> str | None:
     name_lower = voice["name"].lower()
     if channel["type"] == "pitched":
         if "cutoff" in params and "reso" in params:
-            if "attack" in params and voice.get("decay", 0) > 1.0: return "pad"
+            if "attack" in params and "release" in params: return "pad"
             if "pw" in params: return "lead"
             if "envmod" in params: return "bass_acid"
             return "bass_acid"

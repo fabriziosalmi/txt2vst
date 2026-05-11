@@ -21,6 +21,7 @@ def gen_cmake(spec: dict) -> str:
 
         set(CMAKE_CXX_STANDARD 17)
         set(CMAKE_CXX_STANDARD_REQUIRED ON)
+        set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
         include(FetchContent)
         FetchContent_Declare(JUCE
@@ -59,7 +60,7 @@ def gen_cmake(spec: dict) -> str:
 
         # Suppress harmless signedness warnings in generated sequencer code
         target_compile_options({p['name']} PRIVATE
-            -Wno-sign-conversion -Wno-overloaded-virtual
+            -Wno-sign-conversion
         )
 
         juce_generate_juce_header({p['name']})
