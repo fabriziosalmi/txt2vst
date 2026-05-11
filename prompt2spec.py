@@ -142,15 +142,26 @@ def parse_prompt(text: str) -> dict:
                 detected_fx.append(fx_id)
                 break
 
-    # Detect theme
+    # Detect theme (word-boundary aware, prefer "X theme" pattern)
     theme = "midnight"  # default
-    for t in ["acid","ember","frost","neon","vapor","industrial","solar",
-               "void","obsidian","glow","strobe","matrix","copper","candy",
-               "chrome","arctic","terminal","hologram","white","cream",
-               "blood","lavender","midnight"]:
-        if t in text_lower:
+    all_themes = ["void","obsidian","glow","strobe","matrix","copper","candy",
+                  "chrome","arctic","terminal","hologram","white","cream",
+                  "blood","lavender","neon","acid","ember","frost","vapor",
+                  "industrial","solar","midnight"]
+    # First: explicit "X theme" or "X colors" or "X look"
+    for t in all_themes:
+        if re.search(rf'\b{t}\s+(theme|colors?|look|ui|style)\b', text_lower):
             theme = t
             break
+    # Fallback: word-boundary match (skip if also a voice alias)
+    voice_aliases = {"acid", "industrial", "ambient", "string", "strings"}
+    if theme == "midnight":
+        for t in all_themes:
+            if t in voice_aliases:
+                continue
+            if re.search(rf'\b{t}\b', text_lower):
+                theme = t
+                break
 
     # Detect mastering preset
     mastering = None
