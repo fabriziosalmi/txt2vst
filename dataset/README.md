@@ -11,7 +11,6 @@ dataset_info:
 license: mit
 task_categories:
   - text-generation
-  - text2text-generation
 tags:
   - audio
   - vst
