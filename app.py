@@ -149,16 +149,19 @@ Describe your dream instrument in natural language. Get a complete VST3 project 
 
 with gr.Blocks(
     title="txt2vst — Text to VST in One Command",
-    theme=gr.themes.Base(
+    theme=gr.themes.Soft(
         primary_hue="emerald",
-        secondary_hue="blue",
+        secondary_hue="cyan",
         neutral_hue="slate",
         font=gr.themes.GoogleFont("Inter"),
         font_mono=gr.themes.GoogleFont("JetBrains Mono"),
     ),
+    fill_width=True,
     css="""
-    .gradio-container { max-width: 900px !important; }
-    #spec-output textarea { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+    .gradio-container { max-width: 960px !important; margin: 0 auto !important; }
+    #spec-output textarea { font-family: 'JetBrains Mono', monospace !important; font-size: 0.85rem !important; }
+    .prose h1 { font-size: 2.2rem !important; font-weight: 800 !important; }
+    .prose strong { color: var(--body-text-color) !important; }
     """
 ) as demo:
     gr.Markdown(DESCRIPTION)
