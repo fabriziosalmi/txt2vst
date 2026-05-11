@@ -1,7 +1,8 @@
 ---
 import { Drum, Music, Radio, Disc3, Waves, HandMetal, Guitar, Piano, Wind, Sparkles,
-         MessageSquare, FileJson, Cog, AudioLines,
-         Shield, ShieldCheck, Zap, Activity, Cpu, Timer,
+         MessageSquare, FileJson, Cog, AudioLines, Keyboard, BellRing, CloudFog,
+         Timer, Repeat, Mic2, Gauge, Flame, Palette,
+         Shield, ShieldCheck, Zap, Activity, Cpu,
          Github, ArrowRight, ChevronDown } from 'lucide-astro';
 
 const archetypes = [
@@ -15,6 +16,25 @@ const archetypes = [
   { name: "Lead", engine: "PolyBLEP pulse/PWM + SVF + portamento", cpu: "8ns", pct: "0.03%", icon: "piano" },
   { name: "Pad", engine: "Detuned saws + sub + LP filter + ADSR", cpu: "8ns", pct: "0.03%", icon: "wind" },
   { name: "Pluck", engine: "Karplus-Strong physical model + damping", cpu: "5ns", pct: "0.02%", icon: "waves" },
+  { name: "Organ", engine: "9-drawbar harmonics + rotary speaker sim", cpu: "24ns", pct: "0.10%", icon: "keyboard" },
+  { name: "FM Synth", engine: "2-op FM with self-feedback + index env", cpu: "8ns", pct: "0.03%", icon: "bellring" },
+  { name: "Noise", engine: "White/pink + SVF filter + Paul Kellet", cpu: "6ns", pct: "0.03%", icon: "cloudfog" },
+];
+
+const fxTypes = [
+  { name: "Delay", engine: "Stereo ping-pong, tempo sync, LP feedback", icon: "timer" },
+  { name: "Reverb", engine: "Schroeder 4-comb + 2-allpass, damping", icon: "repeat" },
+  { name: "Chorus", engine: "Dual LFO modulated delay, stereo", icon: "mic2" },
+  { name: "Compressor", engine: "Feed-forward, attack/release, makeup", icon: "gauge" },
+  { name: "Distortion", engine: "Asymmetric tube-style soft clip", icon: "flame" },
+];
+
+const themes = [
+  { name: "Midnight", colors: ["#0d0d1a","#1a1a2e","#00c896"] },
+  { name: "Acid", colors: ["#0a0f0a","#142014","#39ff14"] },
+  { name: "Ember", colors: ["#140a08","#261410","#ff6b35"] },
+  { name: "Frost", colors: ["#080c14","#101828","#5ebaff"] },
+  { name: "Neon", colors: ["#0a0010","#180028","#ff00ff"] },
 ];
 
 const guardrails = [
@@ -30,6 +50,8 @@ const iconMap: Record<string, any> = {
   drum: Drum, disc: Disc3, radio: Radio, music: Music,
   sparkles: Sparkles, hand: HandMetal, guitar: Guitar,
   piano: Piano, wind: Wind, waves: Waves,
+  keyboard: Keyboard, bellring: BellRing, cloudfog: CloudFog,
+  timer: Timer, repeat: Repeat, mic2: Mic2, gauge: Gauge, flame: Flame,
 };
 ---
 
@@ -38,7 +60,7 @@ const iconMap: Record<string, any> = {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>txt2vst — Text to VST in One Command</title>
-  <meta name="description" content="Generate production-grade VST3/AU instruments from natural language. 10 DSP archetypes, 20/20 Occam guardrails, zero friction." />
+  <meta name="description" content="Generate production-grade VST3/AU instruments from natural language. 13 voice + 5 FX archetypes, 31/31 Occam guardrails, 5 UI themes." />
   <meta property="og:title" content="txt2vst — Text to VST" />
   <meta property="og:description" content="Generate production VST instruments from text. 10 archetypes, Occam guardrails." />
   <meta property="og:type" content="website" />
@@ -54,10 +76,10 @@ const iconMap: Record<string, any> = {
     <div class="hero-glow"></div>
     <div class="hero-grid"></div>
     <div class="hero-content">
-      <div class="badge"><ShieldCheck size={14} /> Open Source &middot; 10 Archetypes &middot; 20/20 Tests</div>
+      <div class="badge"><ShieldCheck size={14} /> Open Source &middot; 13 Voices + 5 FX &middot; 31/31 Tests</div>
       <h1>txt<span class="accent">2</span>vst</h1>
       <p class="tagline">Text &rarr; VST in One Command</p>
-      <p class="subtitle">Generate production-grade VST3/AU instruments from natural language.<br/>10 specialized DSP engines. Zero friction.</p>
+      <p class="subtitle">Generate production-grade VST3/AU instruments from natural language.<br/>13 voice engines. 5 FX processors. 5 UI themes. Zero friction.</p>
 
       <div class="terminal">
         <div class="terminal-bar">
@@ -77,12 +99,12 @@ const iconMap: Record<string, any> = {
       <div class="hero-stats">
         <div class="stat">
           <span class="stat-icon"><AudioLines size={20} /></span>
-          <span class="stat-num">10</span>
+          <span class="stat-num">13+5</span>
           <span class="stat-lbl">DSP Archetypes</span>
         </div>
         <div class="stat">
           <span class="stat-icon"><ShieldCheck size={20} /></span>
-          <span class="stat-num">20/20</span>
+          <span class="stat-num">31/31</span>
           <span class="stat-lbl">Safety Tests</span>
         </div>
         <div class="stat">
@@ -146,7 +168,7 @@ const iconMap: Record<string, any> = {
   <!-- ARCHETYPES -->
   <section class="section section-dark" id="archetypes">
     <div class="container">
-      <h2 class="section-title">10 DSP Archetypes</h2>
+      <h2 class="section-title">13 Voice Archetypes</h2>
       <p class="section-sub">Each voice gets a purpose-built, production-grade synthesis engine &mdash; not a generic fallback.</p>
       <div class="arch-grid">
         {archetypes.map(a => {
@@ -188,7 +210,7 @@ const iconMap: Record<string, any> = {
           <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
           <span class="terminal-title">test results</span>
         </div>
-        <pre><code><span class="out">  20/20 All Occam guardrails satisfied!</span>
+        <pre><code><span class="out">  31/31 All Occam guardrails satisfied!</span>
 <span class="cm"># cd dsplib && g++ -std=c++17 -O2 -I voices \</span>
 <span class="cm">#   -o test tests/test_voices.cpp && ./test</span></code></pre>
       </div>
@@ -196,6 +218,42 @@ const iconMap: Record<string, any> = {
   </section>
 
   <!-- CTA -->
+  <section class="section" id="fx">
+    <div class="container">
+      <h2 class="section-title">5 FX Processors</h2>
+      <p class="section-sub">Master bus effects, routed per-channel or globally. All Occam-safe.</p>
+      <div class="fx-grid">
+        {fxTypes.map(f => {
+          const Icon = iconMap[f.icon];
+          return (
+            <div class="fx-card">
+              <div class="fx-icon"><Icon size={20} /></div>
+              <div class="fx-name">{f.name}</div>
+              <div class="fx-engine">{f.engine}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-dark" id="themes">
+    <div class="container">
+      <h2 class="section-title">5 UI Themes</h2>
+      <p class="section-sub">Set <code style="color:var(--accent);">"theme": "acid"</code> in your spec and the generated plugin gets a matching color palette.</p>
+      <div class="theme-grid">
+        {themes.map(t => (
+          <div class="theme-card">
+            <div class="theme-swatches">
+              {t.colors.map(c => <div class="theme-swatch" style={`background:${c}`}></div>)}
+            </div>
+            <div class="theme-name">{t.name}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
   <section class="section section-cta">
     <div class="container cta-inner">
       <h2 class="cta-title">Ready to forge?</h2>
@@ -463,6 +521,35 @@ const iconMap: Record<string, any> = {
     font-size: 0.75rem; color: var(--accent); margin-top: 0.15rem; opacity: 0.8;
   }
   .guard-purpose { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+
+  /* ─── FX GRID ─── */
+  .fx-grid {
+    display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;
+    max-width: 700px; margin: 0 auto;
+  }
+  .fx-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.2rem; min-width: 120px;
+    text-align: center; transition: all 0.2s; flex: 1;
+  }
+  .fx-card:hover { border-color: rgba(0,212,160,0.25); }
+  .fx-icon { color: var(--accent); opacity: 0.7; margin-bottom: 0.4rem; }
+  .fx-name { font-weight: 600; font-size: 0.9rem; color: #fff; }
+  .fx-engine { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; line-height: 1.4; }
+
+  /* ─── THEMES ─── */
+  .theme-grid {
+    display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;
+  }
+  .theme-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem 1.5rem;
+    text-align: center; transition: all 0.2s; min-width: 140px;
+  }
+  .theme-card:hover { border-color: rgba(255,255,255,0.12); }
+  .theme-swatches { display: flex; gap: 6px; justify-content: center; margin-bottom: 0.5rem; }
+  .theme-swatch { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); }
+  .theme-name { font-weight: 600; font-size: 0.85rem; color: #fff; }
 
   /* ─── CTA ─── */
   .section-cta {
