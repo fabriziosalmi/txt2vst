@@ -1,0 +1,78 @@
+name: CI — DSP Tests + Build Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  dsp-tests:
+    name: DSP Guardrail Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile test suite
+        run: |
+          cd dsplib
+          g++ -std=c++17 -O2 -I voices -o test_voices tests/test_voices.cpp
+
+      - name: Run 20 Occam guardrails
+        run: |
+          cd dsplib
+          ./test_voices
+
+  forge-test:
+    name: Forge Pipeline Test
+    runs-on: ubuntu-latest
+    needs: dsp-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: prompt2spec → spec.json
+        run: |
+          python3 prompt2spec.py "drum machine acid 4 channels" /tmp/test.spec.json
+          cat /tmp/test.spec.json
+
+      - name: forge.py → generated project
+        run: |
+          python3 forge.py /tmp/test.spec.json /tmp/TestPlugin
+          echo "Generated files:"
+          find /tmp/TestPlugin -name '*.cpp' -o -name '*.h' | sort
+          wc -l /tmp/TestPlugin/src/*.cpp /tmp/TestPlugin/src/**/*.cpp /tmp/TestPlugin/src/**/*.h 2>/dev/null || true
+
+  pages:
+    name: Deploy GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [dsp-tests, forge-test]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build site
+        run: |
+          mkdir -p _site
+          cp docs/index.html _site/
+          cp docs/style.css _site/ 2>/dev/null || true
+          echo "txt2vst.com" > _site/CNAME
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

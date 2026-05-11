@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>txt2vst — Text to VST in One Command</title>
+    <meta name="description" content="Generate production-grade VST3/AU instruments from natural language. 10 DSP archetypes, Occam guardrails, zero friction.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a14;
+            --bg2: #12121f;
+            --surface: #1a1a2e;
+            --accent: #00c896;
+            --accent2: #6ec6ff;
+            --accent3: #e8b838;
+            --text: #e0e0e0;
+            --muted: #888;
+            --glow: rgba(0, 200, 150, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            background: radial-gradient(ellipse at 50% 0%, var(--glow), transparent 70%);
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                linear-gradient(180deg, transparent 0%, var(--bg) 100%),
+                repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(255,255,255,0.02) 50px),
+                repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(255,255,255,0.02) 50px);
+            pointer-events: none;
+        }
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            z-index: 1;
+        }
+        .hero .tagline {
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            font-weight: 300;
+            color: var(--muted);
+            margin-top: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Terminal */
+        .terminal {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            max-width: 720px;
+            width: 90%;
+            margin-top: 2.5rem;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .terminal-bar {
+            background: rgba(255,255,255,0.05);
+            padding: 10px 16px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .terminal-dot:nth-child(1) { background: #ff5f57; }
+        .terminal-dot:nth-child(2) { background: #febc2e; }
+        .terminal-dot:nth-child(3) { background: #28c840; }
+        .terminal-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-left: auto;
+        }
+        .terminal pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            padding: 1.5rem;
+            line-height: 1.8;
+            color: var(--text);
+            overflow-x: auto;
+        }
+        .terminal .prompt { color: var(--accent); }
+        .terminal .comment { color: #555; }
+        .terminal .output { color: var(--accent3); }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 3rem;
+            position: relative;
+            z-index: 1;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-val {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 0.2rem;
+        }
+
+        /* Sections */
+        section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        /* Archetype grid */
+        .arch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        .arch-card {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 1.25rem;
+            transition: transform 0.2s, border-color 0.3s;
+        }
+        .arch-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+        }
+        .arch-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+        .arch-engine {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .arch-cpu {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--accent);
+            margin-top: 0.5rem;
+        }
+
+        /* Pipeline */
+        .pipeline {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+        .pipe-step {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-width: 140px;
+        }
+        .pipe-step .emoji { font-size: 1.5rem; }
+        .pipe-step .label { font-size: 0.85rem; color: var(--muted); margin-top: 0.3rem; }
+        .pipe-arrow {
+            font-size: 1.5rem;
+            color: var(--accent);
+            padding: 0 0.5rem;
+        }
+
+        /* CTA */
+        .cta {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        .cta a {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), #00a67c);
+            color: var(--bg);
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 0.9rem 2.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+        .cta a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,200,150,0.3);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        footer a { color: var(--accent); text-decoration: none; }
+
+        @media (max-width: 600px) {
+            .stats { gap: 1rem; }
+            .pipe-arrow { display: none; }
+            .pipeline { flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>txt2vst</h1>
+    <p class="tagline">Text → VST in One Command</p>
+
+    <div class="terminal">
+        <div class="terminal-bar">
+            <span class="terminal-dot"></span>
+            <span class="terminal-dot"></span>
+            <span class="terminal-dot"></span>
+            <span class="terminal-title">Terminal</span>
+        </div>
+        <pre><span class="comment"># From text to VST3 in 3 commands:</span>
+<span class="prompt">$</span> python3 prompt2spec.py <span style="color:#e8b838">"drum machine acid 4 channels"</span>
+<span class="prompt">$</span> python3 forge.py spec.json output/AcidBox
+<span class="prompt">$</span> cd output/AcidBox && cmake -B build && cmake --build build
+<span class="output">→ [100%] Built target AcidBox_VST3
+→ Installed: ~/Library/Audio/Plug-Ins/VST3/AcidBox.vst3</span></pre>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-val">10</div>
+            <div class="stat-label">DSP Archetypes</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val">20/20</div>
+            <div class="stat-label">Safety Tests</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val">&lt;1%</div>
+            <div class="stat-label">CPU per Voice</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val">~1500</div>
+            <div class="stat-label">Lines Generated</div>
+        </div>
+    </div>
+</div>
+
+<section>
+    <h2>⚡ How It Works</h2>
+    <div class="pipeline">
+        <div class="pipe-step"><div class="emoji">💬</div><div class="label">Natural Language</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="emoji">📋</div><div class="label">spec.json</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="emoji">⚙️</div><div class="label">Forge + Router</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="emoji">🎹</div><div class="label">VST3 / AU</div></div>
+    </div>
+    <p style="text-align:center; color: var(--muted); max-width: 600px; margin: 0 auto;">
+        The <strong>Archetype Router</strong> deterministically maps each voice in your spec to a specialized,
+        production-grade DSP engine. No generic fallbacks — every voice gets purpose-built synthesis.
+    </p>
+</section>
+
+<section>
+    <h2>🎛️ 10 DSP Archetypes</h2>
+    <div class="arch-grid">
+        <div class="arch-card">
+            <div class="arch-name">🥁 Kick</div>
+            <div class="arch-engine">Dual envelope + pitch sweep + sub + drive</div>
+            <div class="arch-cpu">16ns/sample • 0.07% CPU</div>
+        </div>
+        <div class="arch-card">
+            <div class="arch-name">🪘 Snare</div>
+            <div class="arch-engine">Body tone + bandpass noise + snap transient</div>
+            <div class="arch-cpu">9ns/sample • 0.04% CPU</div>
+        </div>
+        <div class="arch-card">
+            <div class="arch-name">🔔 Hats</div>
+            <div class="arch-engine">6-oscillator ring modulation + noise blend</div>
+            <div class="arch-cpu">3ns/sample • 0.01% CPU</div>
+        </div>
+        <div class="arch-card">
+            <div class="arch-name">🎵 Tom</div>
+            <div class="arch-engine">Pitched sine + exponential pitch sweep</div>
+            <div class="arch-cpu">4ns/sample • 0.02% CPU</div>
+        </div>
+        <div class="arch-card">
+            <div class="arch-name">🔊 Perc/FM</div>
+            <div class="arch-engine">FM carrier/modulator + index envelope</div>
+            <div class="arch-cpu">8ns/sample • 0.03% CPU</div>
+        </div>
+        <div class="arch-card">
+            <div class="arch-name">👏 Clap</div>
+            <div class="arch-engine">4 micro-bursts + diffuse tail + bandpass</div>
+            <div class="arch-cpu">4ns/sample • 0.02% CPU</div>
+        </div>
+        <div class="arch-card">
+            <div class="arch-name">🎸 Bass 303</div>
+            <div class="arch-engine">PolyBLEP + 4-pole diode ladder filter</div>
+            <div class="arch-cpu">67ns/sample • 0.30% CPU</div>
+        </div>
+        <div class="arch-card">
+            <div class="arch-name">🎹 Lead</div>
+            <div class="arch-engine">PolyBLEP pulse/PWM + SVF + portamento</div>
+            <div class="arch-cpu">8ns/sample • 0.03% CPU</div>
+        </div>
+        <div class="arch-card">
+            <div class="arch-name">🌊 Pad</div>
+            <div class="arch-engine">Detuned saws + sub + LP filter + ADSR</div>
+            <div class="arch-cpu">8ns/sample • 0.03% CPU</div>
+        </div>
+        <div class="arch-card">
+            <div class="arch-name">🪕 Pluck</div>
+            <div class="arch-engine">Karplus-Strong physical model + damping</div>
+            <div class="arch-cpu">5ns/sample • 0.02% CPU</div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>🛡️ Occam Guardrails</h2>
+    <p style="color: var(--muted); margin-bottom: 1.5rem;">
+        Every archetype passes a <strong>6-point quality gate</strong> at both default and extreme parameter values.
+        No NaN. No Inf. No runaway filters. No infinite tails. Production-safe, always.
+    </p>
+    <div class="terminal" style="max-width: 100%;">
+        <div class="terminal-bar">
+            <span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span>
+            <span class="terminal-title">test results</span>
+        </div>
+        <pre><span class="output">✅ PASS  Kick       Peak:1.30  CPU:0.07%  NaN:n Inf:n
+✅ PASS  Snare      Peak:0.52  CPU:0.04%  NaN:n Inf:n
+✅ PASS  Hats       Peak:0.28  CPU:0.01%  NaN:n Inf:n
+✅ PASS  Tom        Peak:0.70  CPU:0.02%  NaN:n Inf:n
+✅ PASS  Perc/FM    Peak:0.59  CPU:0.03%  NaN:n Inf:n
+✅ PASS  Clap       Peak:0.54  CPU:0.02%  NaN:n Inf:n
+✅ PASS  Bass303    Peak:0.79  CPU:0.30%  NaN:n Inf:n
+✅ PASS  Lead       Peak:0.64  CPU:0.03%  NaN:n Inf:n
+✅ PASS  Pad        Peak:0.41  CPU:0.03%  NaN:n Inf:n
+✅ PASS  Pluck      Peak:0.58  CPU:0.02%  NaN:n Inf:n
+
+🎉 20/20 All Occam guardrails satisfied!</span></pre>
+    </div>
+</section>
+
+<div class="cta">
+    <h2 style="color: var(--text); margin-bottom: 1rem;">Ready to forge?</h2>
+    <a href="https://github.com/fabriziosalmi/txt2vst">View on GitHub →</a>
+</div>
+
+<footer>
+    Made with 🎵 by <a href="https://github.com/fabriziosalmi">fabriziosalmi</a> · txt2vst.com
+</footer>
+
+</body>
+</html>
