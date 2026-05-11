@@ -308,42 +308,44 @@ const iconMap: Record<string, any> = {
           <div class="gen-chips" id="fx-chips"></div>
         </div>
 
-        <!-- Theme + Mastering knobs -->
-        <div class="gen-knobs-row">
-          <div class="knob-group">
-            <label class="gen-label">Theme</label>
-            <div class="knob-wrap" id="knob-theme">
-              <svg class="knob-svg" viewBox="0 0 80 80">
-                <circle cx="40" cy="40" r="34" class="knob-track"/>
-                <circle cx="40" cy="40" r="34" class="knob-arc" id="knob-theme-arc"/>
-                <circle cx="40" cy="40" r="26" class="knob-body"/>
-                <line x1="40" y1="40" x2="40" y2="18" class="knob-pointer" id="knob-theme-ptr"/>
-              </svg>
-              <div class="knob-val" id="knob-theme-val">midnight</div>
+        <!-- Knob Controls -->
+        <div class="gen-knob-well">
+          <div class="gen-knobs-row">
+            <div class="knob-group">
+              <label class="gen-label">Theme</label>
+              <div class="knob-wrap" id="knob-theme">
+                <svg class="knob-svg" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" class="knob-track"/>
+                  <circle cx="40" cy="40" r="34" class="knob-arc" id="knob-theme-arc"/>
+                  <circle cx="40" cy="40" r="26" class="knob-body"/>
+                  <line x1="40" y1="40" x2="40" y2="18" class="knob-pointer" id="knob-theme-ptr"/>
+                </svg>
+                <div class="knob-val" id="knob-theme-val">midnight</div>
+              </div>
             </div>
-          </div>
-          <div class="knob-group">
-            <label class="gen-label">Mastering</label>
-            <div class="knob-wrap" id="knob-master">
-              <svg class="knob-svg" viewBox="0 0 80 80">
-                <circle cx="40" cy="40" r="34" class="knob-track"/>
-                <circle cx="40" cy="40" r="34" class="knob-arc" id="knob-master-arc"/>
-                <circle cx="40" cy="40" r="26" class="knob-body"/>
-                <line x1="40" y1="40" x2="40" y2="18" class="knob-pointer" id="knob-master-ptr"/>
-              </svg>
-              <div class="knob-val" id="knob-master-val">bypass</div>
+            <div class="knob-group">
+              <label class="gen-label">Mastering</label>
+              <div class="knob-wrap" id="knob-master">
+                <svg class="knob-svg" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" class="knob-track"/>
+                  <circle cx="40" cy="40" r="34" class="knob-arc" id="knob-master-arc"/>
+                  <circle cx="40" cy="40" r="26" class="knob-body"/>
+                  <line x1="40" y1="40" x2="40" y2="18" class="knob-pointer" id="knob-master-ptr"/>
+                </svg>
+                <div class="knob-val" id="knob-master-val">bypass</div>
+              </div>
             </div>
-          </div>
-          <div class="knob-group">
-            <label class="gen-label">Channels</label>
-            <div class="knob-wrap" id="knob-channels">
-              <svg class="knob-svg" viewBox="0 0 80 80">
-                <circle cx="40" cy="40" r="34" class="knob-track"/>
-                <circle cx="40" cy="40" r="34" class="knob-arc" id="knob-ch-arc"/>
-                <circle cx="40" cy="40" r="26" class="knob-body"/>
-                <line x1="40" y1="40" x2="40" y2="18" class="knob-pointer" id="knob-ch-ptr"/>
-              </svg>
-              <div class="knob-val" id="knob-ch-val">4</div>
+            <div class="knob-group">
+              <label class="gen-label">Channels</label>
+              <div class="knob-wrap" id="knob-channels">
+                <svg class="knob-svg" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" class="knob-track"/>
+                  <circle cx="40" cy="40" r="34" class="knob-arc" id="knob-ch-arc"/>
+                  <circle cx="40" cy="40" r="26" class="knob-body"/>
+                  <line x1="40" y1="40" x2="40" y2="18" class="knob-pointer" id="knob-ch-ptr"/>
+                </svg>
+                <div class="knob-val" id="knob-ch-val">4</div>
+              </div>
             </div>
           </div>
         </div>
@@ -798,9 +800,18 @@ const iconMap: Record<string, any> = {
     color: var(--accent); font-weight: 600;
     box-shadow: 0 0 16px rgba(0,212,160,0.12), inset 0 0 8px rgba(0,212,160,0.05);
   }
+  .gen-knob-well {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.03);
+    border-radius: 16px;
+    padding: 1.5rem 2rem 2.2rem;
+    margin: 0.5rem 0 2rem;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+  }
   .gen-knobs-row {
-    display: flex; gap: 2.5rem; justify-content: center;
-    margin: 2rem 0; flex-wrap: wrap;
+    display: flex; gap: 3rem; justify-content: center;
+    flex-wrap: wrap;
+    margin: 0;
   }
   .knob-group { text-align: center; }
   .knob-wrap {
@@ -842,7 +853,7 @@ const iconMap: Record<string, any> = {
     font-family: 'JetBrains Mono', monospace;
     text-transform: uppercase; letter-spacing: 0.05em;
   }
-  .gen-output { margin-top: 1.5rem; }
+  .gen-output { margin-top: 0; }
   .gen-actions {
     display: flex; gap: 0.8rem; margin-top: 1rem;
     flex-wrap: wrap;
@@ -917,9 +928,9 @@ const iconMap: Record<string, any> = {
 
   // ── Knob logic ──
   function updateKnob(arcId, ptrId, valId, index, total, values) {
-    const frac = index / (total - 1);
-    const arcLen = 175;
-    const offset = arcLen - frac * (arcLen - 44);
+    const frac = total > 1 ? index / (total - 1) : 0;
+    const usable = 175 - 44; // arc length minus gap
+    const offset = 175 - frac * usable;
     document.getElementById(arcId).style.strokeDashoffset = offset;
     const angle = -135 + frac * 270;
     document.getElementById(ptrId).style.transform = `rotate(${angle}deg)`;
@@ -934,7 +945,7 @@ const iconMap: Record<string, any> = {
     });
     el.addEventListener('wheel', e => {
       e.preventDefault();
-      let idx = getIdx() + (e.deltaY > 0 ? 1 : -1);
+      let idx = getIdx() + (e.deltaY < 0 ? 1 : -1);
       idx = Math.max(0, Math.min(idx, values.length - 1));
       setIdx(idx);
       updateKnob(arcId, ptrId, valId, idx, values.length, values);
