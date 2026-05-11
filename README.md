@@ -191,21 +191,6 @@ txt2vst/
 - C++17 compiler (Xcode/Clang on macOS, GCC 11+ on Linux)
 - JUCE 8 (auto-fetched by CMake via FetchContent)
 
-## 🗺️ Roadmap
-
-- [x] Deterministic skeleton generator
-- [x] 16 production DSP archetypes (drums + pitched)
-- [x] 8 FX processors
-- [x] 7 mastering presets
-- [x] 23 UI themes
-- [x] Occam guardrail test suite (46/46)
-- [x] Prompt → spec.json NLP parser
-- [x] Full pipeline: text → compiled VST3
-- [x] Web interface at [txt2vst.com](https://txt2vst.com)
-- [x] HuggingFace Space + Dataset
-- [x] One-click build.sh installer
-- [ ] WASM-based audio preview in browser
-- [ ] CI/CD: auto-build + notarize on push
 
 ---
 
