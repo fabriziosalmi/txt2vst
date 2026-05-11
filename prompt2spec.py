@@ -51,7 +51,7 @@ FX_ARCHETYPES = {
     "reverb":     {"params": ["decay","damping","mix","predelay"],
                    "aliases": ["reverb","verb","room","hall","plate"]},
     "chorus":     {"params": ["rate","depth","mix"],
-                   "aliases": ["chorus","ensemble","detune"]},
+                   "aliases": ["chorus","unison","thicken"]},
     "compressor": {"params": ["threshold","ratio","attack","release","makeup"],
                    "aliases": ["compressor","comp","limiter","squash"]},
     "distortion": {"params": ["drive","tone","mix"],
@@ -96,7 +96,8 @@ def parse_prompt(text: str) -> dict:
     for arch_id, info in sorted(DRUM_ARCHETYPES.items(), key=lambda x: -max(len(a) for a in x[1]["aliases"])):
         for alias in sorted(info["aliases"], key=len, reverse=True):
             if re.search(rf'\b{re.escape(alias)}\b', text_lower):
-                detected_drums.append(arch_id)
+                if arch_id not in detected_drums:
+                    detected_drums.append(arch_id)
                 break
 
     for arch_id, info in sorted(PITCHED_ARCHETYPES.items(), key=lambda x: -max(len(a) for a in x[1]["aliases"])):
@@ -146,20 +147,27 @@ def parse_prompt(text: str) -> dict:
 
     # Detect theme (word-boundary aware, prefer "X theme" pattern)
     theme = "midnight"  # default
-    all_themes = ["void","obsidian","glow","strobe","matrix","copper","candy",
-                  "chrome","arctic","terminal","hologram","white","cream",
-                  "blood","lavender","neon","acid","ember","frost","vapor",
-                  "industrial","solar","midnight"]
+    try:
+        from forge.themes import THEMES
+        all_themes = list(THEMES.keys())
+    except ImportError:
+        all_themes = ["void","obsidian","glow","strobe","matrix","copper","candy",
+                      "chrome","arctic","terminal","hologram","white","cream",
+                      "blood","lavender","neon","acid","ember","frost","vapor",
+                      "industrial","solar","midnight"]
+    # Build voice alias set dynamically to avoid cross-domain false positives
+    voice_alias_set = set()
+    for info in {**DRUM_ARCHETYPES, **PITCHED_ARCHETYPES}.values():
+        voice_alias_set.update(info["aliases"])
     # First: explicit "X theme" or "X colors" or "X look"
     for t in all_themes:
         if re.search(rf'\b{t}\s+(theme|colors?|look|ui|style)\b', text_lower):
             theme = t
             break
     # Fallback: word-boundary match (skip if also a voice alias)
-    voice_aliases = {"acid", "industrial", "ambient", "string", "strings"}
     if theme == "midnight":
         for t in all_themes:
-            if t in voice_aliases:
+            if t in voice_alias_set:
                 continue
             if re.search(rf'\b{t}\b', text_lower):
                 theme = t
@@ -168,16 +176,16 @@ def parse_prompt(text: str) -> dict:
     # Detect mastering preset
     mastering = None
     mastering_aliases = {
-        "punch":       ["punch", "punchy", "hard", "aggressive", "smack"],
-        "wet":         ["wet", "lush", "atmospheric", "spacey", "ambient"],
-        "radio":       ["radio", "lo-fi", "lofi", "telephone", "lo fi"],
+        "punch":       ["punchy mastering", "punch", "punchy", "hard", "aggressive", "smack"],
+        "wet":         ["wet", "lush", "atmospheric", "spacey"],
+        "radio":       ["lo-fi", "lofi", "lo fi", "radio", "telephone"],
         "distorted":   ["distorted", "dirty", "gritty", "crushed", "saturated"],
-        "wide":        ["wide", "stereo", "spatial", "3d", "immersive"],
-        "transparent": ["transparent", "clean master", "mastered", "mastering", "glue", "polished"],
+        "wide":        ["wide", "stereo", "spatial", "immersive"],
+        "transparent": ["clean master", "transparent", "mastered", "mastering", "glue", "polished"],
     }
     for preset, aliases in mastering_aliases.items():
-        for alias in aliases:
-            if alias in text_lower:
+        for alias in sorted(aliases, key=len, reverse=True):
+            if re.search(rf'\b{re.escape(alias)}\b', text_lower):
                 mastering = preset
                 break
         if mastering:
@@ -203,15 +211,16 @@ def parse_prompt(text: str) -> dict:
         voices.append({"name": ch_name, "params": info["params"]})
         midi_ch += 1
 
-    # Generate 4-char codes
-    prefix = plugin_name[:3].upper() if len(plugin_name) >= 3 else "PLG"
-    code = (plugin_name[:4].capitalize() if len(plugin_name) >= 4 else "Plgn")
+    # Generate 4-char codes (must be valid C++ identifier — no leading digits)
+    safe_name = re.sub(r'^[^a-zA-Z]+', '', plugin_name) or "MyPlugin"
+    prefix = safe_name[:3].upper() if len(safe_name) >= 3 else "PLG"
+    code = (safe_name[:4].capitalize() if len(safe_name) >= 4 else "Plgn")
 
     features = {
         "sequencer": has_sequencer or len(detected_drums) > 0,
         "swing": has_swing,
         "sidechain": has_sidechain,
-        "master_fx": detected_fx if detected_fx else (["drive"] if len(all_voices) > 2 else [])
+        "master_fx": detected_fx
     }
     if mastering:
         features["mastering"] = mastering
@@ -224,7 +233,7 @@ def parse_prompt(text: str) -> dict:
             "prefix": prefix,
             "mfr_code": "Tx2v",
             "code": code,
-            "ui": [1031, 625]
+            "ui": [1280, 760]
         },
         "channels": channels,
         "voices": voices,
@@ -264,7 +273,7 @@ def main():
     # Summary
     drums = [c for c in spec["channels"] if c["type"] == "drum"]
     pitched = [c for c in spec["channels"] if c["type"] == "pitched"]
-    print(f"\n🎯 {spec['plugin']['name']}: {len(drums)} drums + {len(pitched)} pitched = {len(spec['channels'])} channels")
+    print(f"\n{spec['plugin']['name']}: {len(drums)} drums + {len(pitched)} pitched = {len(spec['channels'])} channels")
     print(f"   Features: seq={spec['features']['sequencer']} swing={spec['features']['swing']} sc={spec['features']['sidechain']}")
 
 
