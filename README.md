@@ -1,14 +1,14 @@
 <div align="center">
 
-# 🎹 txt2vst
+# txt2vst
 
-### Text → VST in One Command
+### Text to VST in One Command
 
 *Generate production-grade VST3/AU instruments from natural language. 2.7B+ unique combinations.*
 
 [![DSP Tests](https://img.shields.io/badge/Occam_tests-46%2F46-brightgreen?style=for-the-badge)](https://github.com/fabriziosalmi/txt2vst)
 [![Archetypes](https://img.shields.io/badge/archetypes-16+8-blue?style=for-the-badge)](https://github.com/fabriziosalmi/txt2vst)
-[![Themes](https://img.shields.io/badge/themes-24-purple?style=for-the-badge)](https://github.com/fabriziosalmi/txt2vst)
+[![Themes](https://img.shields.io/badge/themes-23-purple?style=for-the-badge)](https://github.com/fabriziosalmi/txt2vst)
 [![License](https://img.shields.io/badge/license-MIT-orange?style=for-the-badge)](LICENSE)
 
 [**Website**](https://txt2vst.com) · [**HuggingFace Space**](https://huggingface.co/spaces/fabriziosalmi/txt2vst) · [**Dataset**](https://huggingface.co/datasets/fabriziosalmi/txt2vst)
@@ -17,11 +17,11 @@
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Option A: Web (no install)
 
-👉 **[huggingface.co/spaces/fabriziosalmi/txt2vst](https://huggingface.co/spaces/fabriziosalmi/txt2vst)** — describe your plugin, download the project ZIP, build.
+**[huggingface.co/spaces/fabriziosalmi/txt2vst](https://huggingface.co/spaces/fabriziosalmi/txt2vst)** — describe your plugin, download the project ZIP, build.
 
 ### Option B: CLI
 
@@ -42,7 +42,7 @@ chmod +x build.sh && ./build.sh
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
  ┌─────────────┐     ┌─────────────┐     ┌──────────────┐     ┌──────────┐
@@ -71,7 +71,7 @@ chmod +x build.sh && ./build.sh
                                                       sub_bass  → sine + harmonics
 ```
 
-## 🎛️ 16 Voice Archetypes
+## 16 Voice Archetypes
 
 | Archetype | Engine | Guardrails |
 |-----------|--------|------------|
@@ -92,7 +92,7 @@ chmod +x build.sh && ./build.sh
 | **Brass** | Resonant saw + transient | Attack clamp |
 | **Sub Bass** | Sine + harmonics + drive | Sub level limit |
 
-## 🎨 8 FX Processors
+## 8 FX Processors
 
 | FX | Engine |
 |----|--------|
@@ -105,7 +105,7 @@ chmod +x build.sh && ./build.sh
 | **EQ** | 3-band parametric |
 | **Gate** | Noise gate + expander |
 
-## 🎛️ 7 Mastering Presets
+## 7 Mastering Presets
 
 Selectable per-plugin mastering chain on the output bus:
 
@@ -119,7 +119,7 @@ Selectable per-plugin mastering chain on the output bus:
 | **Distorted** | Warm saturation, grit |
 | **Wide** | Stereo widening above 300Hz |
 
-## 🎨 23 UI Themes
+## 23 UI Themes
 
 Each generates a unique JUCE `LookAndFeel` — purely CSS-driven, zero DSP impact:
 
@@ -132,7 +132,7 @@ Each generates a unique JUCE `LookAndFeel` — purely CSS-driven, zero DSP impac
 | **Retro** | vapor, industrial, terminal, hologram |
 | **Bright** | white, cream, blood, lavender |
 
-## 🛡️ Occam Guardrails
+## Occam Guardrails
 
 Every archetype passes a **6-point quality gate** at default and extreme parameter values:
 
@@ -147,21 +147,21 @@ Every archetype passes a **6-point quality gate** at default and extreme paramet
 
 ```bash
 cd dsplib && clang++ -std=c++17 -O2 -I . -o test_voices tests/test_voices.cpp && ./test_voices
-# → 46/46 passed 🎉
+# → 46/46 passed
 ```
 
-## 📊 Combinatorial Space
+## Combinatorial Space
 
 | Metric | Count |
 |--------|-------|
 | Voice archetypes | 16 (6 drum + 10 pitched) |
 | FX processors | 8 |
-| UI themes | 24 |
+| UI themes | 23 |
 | Mastering presets | 7 |
 | **Sonically unique** | **117M+** |
 | **Visually distinct** | **2.7B+** |
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 txt2vst/
@@ -170,7 +170,7 @@ txt2vst/
 ├── app.py                # HuggingFace Space (Gradio)
 ├── forge/                # Generator modules
 │   ├── spec.py           # Archetype routing
-│   ├── themes.py         # 24 UI theme definitions
+│   ├── themes.py         # 23 UI theme definitions
 │   ├── gen_cmake.py      # CMakeLists (FetchContent for JUCE)
 │   ├── gen_core.py       # Bus layout, params, voice bank
 │   ├── gen_audio.py      # Processor, sequencer, transport
@@ -184,19 +184,18 @@ txt2vst/
 └── templates/            # Spec examples + JUCE skeleton
 ```
 
-## 🔧 Requirements
+## Requirements
 
 - Python 3.10+
 - CMake 3.22+
 - C++17 compiler (Xcode/Clang on macOS, GCC 11+ on Linux)
 - JUCE 8 (auto-fetched by CMake via FetchContent)
 
-
 ---
 
 <div align="center">
 
-**Made with** 🎵 **by** [fabriziosalmi](https://github.com/fabriziosalmi)
+**Made by** [fabriziosalmi](https://github.com/fabriziosalmi)
 
 *From text to sound — no friction, no limits.*
 
