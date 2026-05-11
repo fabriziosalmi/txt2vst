@@ -30,3 +30,5 @@ node_modules/
 .idea/
 *.swp
 *.swo
+site/.vscode/
+docs/
