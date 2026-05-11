@@ -1,0 +1,492 @@
+---
+import { Drum, Music, Radio, Disc3, Waves, HandMetal, Guitar, Piano, Wind, Sparkles,
+         MessageSquare, FileJson, Cog, AudioLines,
+         Shield, ShieldCheck, Zap, Activity, Cpu, Timer,
+         Github, ArrowRight, ChevronDown } from 'lucide-astro';
+
+const archetypes = [
+  { name: "Kick", engine: "Dual envelope + pitch sweep + sub + drive", cpu: "16ns", pct: "0.07%", icon: "drum" },
+  { name: "Snare", engine: "Body tone + bandpass noise + snap transient", cpu: "9ns", pct: "0.04%", icon: "disc" },
+  { name: "Hats", engine: "6-oscillator ring modulation + noise blend", cpu: "3ns", pct: "0.01%", icon: "radio" },
+  { name: "Tom", engine: "Pitched sine + exponential pitch sweep", cpu: "4ns", pct: "0.02%", icon: "music" },
+  { name: "Perc/FM", engine: "FM carrier/modulator + index envelope", cpu: "8ns", pct: "0.03%", icon: "sparkles" },
+  { name: "Clap", engine: "4 micro-bursts + diffuse tail + bandpass", cpu: "4ns", pct: "0.02%", icon: "hand" },
+  { name: "Bass 303", engine: "PolyBLEP + 4-pole diode ladder filter", cpu: "67ns", pct: "0.30%", icon: "guitar" },
+  { name: "Lead", engine: "PolyBLEP pulse/PWM + SVF + portamento", cpu: "8ns", pct: "0.03%", icon: "piano" },
+  { name: "Pad", engine: "Detuned saws + sub + LP filter + ADSR", cpu: "8ns", pct: "0.03%", icon: "wind" },
+  { name: "Pluck", engine: "Karplus-Strong physical model + damping", cpu: "5ns", pct: "0.02%", icon: "waves" },
+];
+
+const guardrails = [
+  { id: "1", rule: "No NaN", threshold: "0 occurrences", purpose: "Numerical stability" },
+  { id: "2", rule: "No Inf", threshold: "0 occurrences", purpose: "Filter stability" },
+  { id: "3", rule: "Peak amplitude", threshold: "< 1.5", purpose: "Headroom before clipping" },
+  { id: "4", rule: "DC offset", threshold: "< 0.01", purpose: "No speaker damage" },
+  { id: "5", rule: "CPU usage", threshold: "< 5% per voice", purpose: "Real-time safety" },
+  { id: "6", rule: "Deactivation", threshold: "Must stop", purpose: "No infinite tails" },
+];
+
+const iconMap: Record<string, any> = {
+  drum: Drum, disc: Disc3, radio: Radio, music: Music,
+  sparkles: Sparkles, hand: HandMetal, guitar: Guitar,
+  piano: Piano, wind: Wind, waves: Waves,
+};
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>txt2vst — Text to VST in One Command</title>
+  <meta name="description" content="Generate production-grade VST3/AU instruments from natural language. 10 DSP archetypes, 20/20 Occam guardrails, zero friction." />
+  <meta property="og:title" content="txt2vst — Text to VST" />
+  <meta property="og:description" content="Generate production VST instruments from text. 10 archetypes, Occam guardrails." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://txt2vst.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300d4a0' stroke-width='2'><path d='M9 18V5l12-2v13'/><circle cx='6' cy='18' r='3'/><circle cx='18' cy='16' r='3'/></svg>" />
+</head>
+<body>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <div class="badge"><ShieldCheck size={14} /> Open Source &middot; 10 Archetypes &middot; 20/20 Tests</div>
+      <h1>txt<span class="accent">2</span>vst</h1>
+      <p class="tagline">Text &rarr; VST in One Command</p>
+      <p class="subtitle">Generate production-grade VST3/AU instruments from natural language.<br/>10 specialized DSP engines. Zero friction.</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+          <span class="terminal-title">txt2vst</span>
+        </div>
+        <pre><code><span class="cm"># From text to VST3 in seconds</span>
+<span class="pr">$</span> python3 prompt2spec.py <span class="str">"drum machine acid 4 channels"</span>
+<span class="pr">$</span> python3 forge.py spec.json output/AcidBox
+<span class="pr">$</span> cmake -B build && cmake --build build
+<span class="out">  [100%] Built target AcidBox_VST3</span>
+<span class="out">  Installed: ~/Library/Audio/Plug-Ins/VST3/AcidBox.vst3</span></code></pre>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-icon"><AudioLines size={20} /></span>
+          <span class="stat-num">10</span>
+          <span class="stat-lbl">DSP Archetypes</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon"><ShieldCheck size={20} /></span>
+          <span class="stat-num">20/20</span>
+          <span class="stat-lbl">Safety Tests</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon"><Cpu size={20} /></span>
+          <span class="stat-num">&lt;1%</span>
+          <span class="stat-lbl">CPU per Voice</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon"><Zap size={20} /></span>
+          <span class="stat-num">~1500</span>
+          <span class="stat-lbl">LOC Generated</span>
+        </div>
+      </div>
+
+      <div class="hero-cta">
+        <a href="https://github.com/fabriziosalmi/txt2vst" class="btn-primary">
+          <Github size={18} /> View on GitHub
+        </a>
+        <a href="#archetypes" class="btn-ghost">Explore Archetypes <ChevronDown size={16} /></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section class="section" id="pipeline">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-sub">Four stages. Fully deterministic. No LLM in the audio path.</p>
+      <div class="pipeline">
+        <div class="pipe-card">
+          <div class="pipe-num">1</div>
+          <div class="pipe-icon"><MessageSquare size={28} /></div>
+          <div class="pipe-label">Natural Language</div>
+          <div class="pipe-sub">"acid drum machine 4ch"</div>
+        </div>
+        <div class="pipe-arrow"><ArrowRight size={22} /></div>
+        <div class="pipe-card">
+          <div class="pipe-num">2</div>
+          <div class="pipe-icon"><FileJson size={28} /></div>
+          <div class="pipe-label">spec.json</div>
+          <div class="pipe-sub">Channels, voices, features</div>
+        </div>
+        <div class="pipe-arrow"><ArrowRight size={22} /></div>
+        <div class="pipe-card">
+          <div class="pipe-num">3</div>
+          <div class="pipe-icon"><Cog size={28} /></div>
+          <div class="pipe-label">Forge + Router</div>
+          <div class="pipe-sub">22 C++ files generated</div>
+        </div>
+        <div class="pipe-arrow"><ArrowRight size={22} /></div>
+        <div class="pipe-card">
+          <div class="pipe-num">4</div>
+          <div class="pipe-icon"><AudioLines size={28} /></div>
+          <div class="pipe-label">VST3 / AU</div>
+          <div class="pipe-sub">Installed & ready</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHETYPES -->
+  <section class="section section-dark" id="archetypes">
+    <div class="container">
+      <h2 class="section-title">10 DSP Archetypes</h2>
+      <p class="section-sub">Each voice gets a purpose-built, production-grade synthesis engine &mdash; not a generic fallback.</p>
+      <div class="arch-grid">
+        {archetypes.map(a => {
+          const Icon = iconMap[a.icon];
+          return (
+            <div class="arch-card">
+              <div class="arch-icon"><Icon size={24} /></div>
+              <div class="arch-info">
+                <div class="arch-name">{a.name}</div>
+                <div class="arch-engine">{a.engine}</div>
+                <div class="arch-cpu">{a.cpu}/sample &middot; {a.pct} CPU</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <!-- GUARDRAILS -->
+  <section class="section" id="guardrails">
+    <div class="container">
+      <h2 class="section-title">Occam Guardrails</h2>
+      <p class="section-sub">Every archetype passes a 6-point quality gate. Default and extreme parameters. No exceptions.</p>
+      <div class="guard-grid">
+        {guardrails.map(g => (
+          <div class="guard-card">
+            <div class="guard-id"><Shield size={14} /></div>
+            <div class="guard-body">
+              <div class="guard-rule">{g.rule}</div>
+              <div class="guard-thresh">{g.threshold}</div>
+              <div class="guard-purpose">{g.purpose}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div class="terminal" style="margin-top: 2.5rem; max-width: 620px;">
+        <div class="terminal-bar">
+          <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+          <span class="terminal-title">test results</span>
+        </div>
+        <pre><code><span class="out">  20/20 All Occam guardrails satisfied!</span>
+<span class="cm"># cd dsplib && g++ -std=c++17 -O2 -I voices \</span>
+<span class="cm">#   -o test tests/test_voices.cpp && ./test</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section section-cta">
+    <div class="container cta-inner">
+      <h2 class="cta-title">Ready to forge?</h2>
+      <p class="section-sub" style="margin-bottom:2rem;">Clone. Describe. Build. Ship.</p>
+      <a href="https://github.com/fabriziosalmi/txt2vst" class="btn-primary btn-lg">
+        <Github size={20} /> Get Started on GitHub <ArrowRight size={18} />
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>Made by <a href="https://github.com/fabriziosalmi">fabriziosalmi</a></p>
+      <p class="footer-sub">txt2vst.com &mdash; From text to sound, no friction, no limits.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #060610;
+    --bg2: #0a0a18;
+    --surface: #111122;
+    --surface2: #161630;
+    --accent: #00d4a0;
+    --accent2: #5ebaff;
+    --accent3: #f0c040;
+    --text: #e8e8f0;
+    --muted: #6a6a88;
+    --border: rgba(255,255,255,0.05);
+    --glow: rgba(0, 212, 160, 0.10);
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-glow {
+    position: absolute; top: -25%; left: 50%; transform: translateX(-50%);
+    width: 900px; height: 700px;
+    background: radial-gradient(ellipse, var(--glow), transparent 65%);
+    pointer-events: none; z-index: 0;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent 0, transparent 79px, rgba(255,255,255,0.012) 80px),
+      repeating-linear-gradient(90deg, transparent 0, transparent 79px, rgba(255,255,255,0.012) 80px);
+    mask-image: radial-gradient(ellipse 70% 55% at 50% 35%, black, transparent);
+    pointer-events: none; z-index: 0;
+  }
+  .hero-content {
+    position: relative; z-index: 1;
+    text-align: center; padding: 2rem 1.5rem;
+    max-width: 780px;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.76rem; font-weight: 500; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(0,212,160,0.06);
+    border: 1px solid rgba(0,212,160,0.12);
+    padding: 0.35rem 1rem; border-radius: 99px;
+    margin-bottom: 1.8rem;
+  }
+  .hero h1 {
+    font-size: clamp(4rem, 12vw, 8rem);
+    font-weight: 800; letter-spacing: -0.05em;
+    line-height: 0.95;
+    color: #fff;
+  }
+  .hero .accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .tagline {
+    font-size: clamp(1.15rem, 2.8vw, 1.5rem);
+    font-weight: 300; color: var(--muted);
+    margin-top: 0.6rem;
+  }
+  .subtitle {
+    font-size: 0.95rem; color: var(--muted);
+    margin-top: 1.2rem;
+    line-height: 1.75;
+  }
+
+  /* ─── TERMINAL ─── */
+  .terminal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    max-width: 620px; width: 100%;
+    margin: 2.5rem auto 0;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .terminal-bar {
+    background: rgba(255,255,255,0.025);
+    padding: 12px 16px; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.red { background: #ff5f57; }
+  .dot.yellow { background: #febc2e; }
+  .dot.green { background: #28c840; }
+  .terminal-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: var(--muted); margin-left: auto;
+    letter-spacing: 0.03em;
+  }
+  .terminal pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; padding: 1.2rem 1.5rem;
+    line-height: 2; overflow-x: auto;
+  }
+  .terminal code { color: var(--text); }
+  .cm { color: #444; }
+  .pr { color: var(--accent); font-weight: 600; }
+  .str { color: var(--accent3); }
+  .out { color: var(--accent); opacity: 0.85; }
+
+  /* ─── STATS ─── */
+  .hero-stats {
+    display: flex; gap: 2rem; justify-content: center;
+    flex-wrap: wrap; margin-top: 2.5rem;
+  }
+  .stat {
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
+  }
+  .stat-icon { color: var(--accent); opacity: 0.6; }
+  .stat-num {
+    font-size: 2rem; font-weight: 800;
+    color: #fff;
+  }
+  .stat-lbl { font-size: 0.78rem; color: var(--muted); }
+
+  /* ─── CTA BUTTONS ─── */
+  .hero-cta { margin-top: 2.5rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--accent);
+    color: var(--bg); font-weight: 600; font-size: 0.9rem;
+    padding: 0.7rem 1.6rem; border-radius: 10px;
+    text-decoration: none; transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(0,212,160,0.15);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(0,212,160,0.25);
+    background: #00e0aa;
+  }
+  .btn-lg { font-size: 1rem; padding: 0.85rem 2.2rem; border-radius: 12px; }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--muted); font-weight: 500; font-size: 0.9rem;
+    padding: 0.7rem 1.4rem; border-radius: 10px;
+    text-decoration: none; border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+
+  /* ─── SECTIONS ─── */
+  .section { padding: 6rem 0; }
+  .section-dark { background: var(--bg2); }
+  .section-title {
+    font-size: 1.8rem; font-weight: 700; text-align: center;
+    margin-bottom: 0.5rem; color: #fff;
+  }
+  .section-sub {
+    text-align: center; color: var(--muted);
+    max-width: 520px; margin: 0 auto 3rem;
+    font-size: 0.95rem;
+  }
+
+  /* ─── PIPELINE ─── */
+  .pipeline {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; flex-wrap: wrap;
+  }
+  .pipe-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.8rem 1.5rem 1.5rem;
+    text-align: center; min-width: 170px;
+    position: relative; transition: all 0.2s;
+  }
+  .pipe-card:hover { border-color: rgba(0,212,160,0.3); transform: translateY(-2px); }
+  .pipe-num {
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: var(--bg);
+    width: 22px; height: 22px; border-radius: 7px;
+    font-size: 0.7rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pipe-icon { color: var(--accent); margin-bottom: 0.6rem; opacity: 0.8; }
+  .pipe-label { font-weight: 600; font-size: 0.9rem; color: #fff; }
+  .pipe-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+  .pipe-arrow { color: var(--accent); padding: 0 0.6rem; opacity: 0.4; }
+
+  /* ─── ARCHETYPE GRID ─── */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 0.6rem;
+  }
+  .arch-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem 1.2rem;
+    display: flex; align-items: flex-start; gap: 1rem;
+    transition: all 0.2s;
+  }
+  .arch-card:hover { border-color: rgba(0,212,160,0.25); }
+  .arch-icon {
+    color: var(--accent); opacity: 0.7;
+    flex-shrink: 0; margin-top: 0.1rem;
+    width: 24px; height: 24px;
+  }
+  .arch-name { font-weight: 600; font-size: 0.95rem; color: #fff; }
+  .arch-engine { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; line-height: 1.5; }
+  .arch-cpu {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: var(--accent); margin-top: 0.35rem; opacity: 0.8;
+  }
+
+  /* ─── GUARDRAILS ─── */
+  .guard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.6rem; max-width: 750px; margin: 0 auto;
+  }
+  .guard-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem;
+    display: flex; align-items: flex-start; gap: 0.75rem;
+  }
+  .guard-id {
+    background: rgba(0,212,160,0.1); color: var(--accent);
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .guard-rule { font-weight: 600; font-size: 0.88rem; color: #fff; }
+  .guard-thresh {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; color: var(--accent); margin-top: 0.15rem; opacity: 0.8;
+  }
+  .guard-purpose { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+
+  /* ─── CTA ─── */
+  .section-cta {
+    background: radial-gradient(ellipse at 50% 100%, var(--glow), transparent 55%);
+    padding: 7rem 0 6rem;
+  }
+  .cta-inner { text-align: center; }
+  .cta-title { font-size: 2.5rem; color: #fff; margin-bottom: 0.4rem; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    text-align: center; padding: 2.5rem 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem; color: var(--muted);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .footer-sub { font-size: 0.78rem; margin-top: 0.3rem; opacity: 0.7; }
+
+  @media (max-width: 640px) {
+    .hero-stats { gap: 1.2rem; }
+    .pipe-arrow { display: none; }
+    .pipeline { flex-direction: column; gap: 0.75rem; }
+    .pipe-card { width: 100%; }
+    .arch-grid { grid-template-columns: 1fr; }
+  }
+</style>

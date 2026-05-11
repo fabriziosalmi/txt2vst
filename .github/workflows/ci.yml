@@ -1,4 +1,4 @@
-name: CI — DSP Tests + Build Verification
+name: CI — DSP Tests + Build + Deploy Site
 
 on:
   push:
@@ -44,11 +44,10 @@ jobs:
         run: |
           python3 forge.py /tmp/test.spec.json /tmp/TestPlugin
           echo "Generated files:"
-          find /tmp/TestPlugin -name '*.cpp' -o -name '*.h' | sort
-          wc -l /tmp/TestPlugin/src/*.cpp /tmp/TestPlugin/src/**/*.cpp /tmp/TestPlugin/src/**/*.h 2>/dev/null || true
+          find /tmp/TestPlugin -name '*.cpp' -o -name '*.h' | wc -l
 
-  pages:
-    name: Deploy GitHub Pages
+  deploy:
+    name: Deploy txt2vst.com
     runs-on: ubuntu-latest
     needs: [dsp-tests, forge-test]
     if: github.ref == 'refs/heads/main'
@@ -61,17 +60,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build site
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install & Build Astro
         run: |
-          mkdir -p _site
-          cp docs/index.html _site/
-          cp docs/style.css _site/ 2>/dev/null || true
-          echo "txt2vst.com" > _site/CNAME
+          cd site
+          npm ci
+          npm run build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: site/dist
 
       - name: Deploy to GitHub Pages
         id: deployment
