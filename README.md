@@ -189,7 +189,7 @@ txt2vst/
 - Python 3.10+
 - CMake 3.22+
 - C++17 compiler (Xcode/Clang on macOS, GCC 11+ on Linux)
-- JUCE 7 (auto-fetched by CMake via FetchContent)
+- JUCE 8 (auto-fetched by CMake via FetchContent)
 
 ## 🗺️ Roadmap
 
