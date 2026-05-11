@@ -134,7 +134,7 @@ const iconMap: Record<string, any> = {
         </div>
         <div class="stat">
           <span class="stat-icon"><Clock size={20} /></span>
-          <span class="stat-num">80M+</span>
+          <span class="stat-num">240M+</span>
           <span class="stat-lbl">Visual Combos</span>
         </div>
         <div class="stat">
@@ -147,6 +147,9 @@ const iconMap: Record<string, any> = {
       <div class="hero-cta">
         <a href="https://github.com/fabriziosalmi/txt2vst" class="btn-primary">
           <Github size={18} /> View on GitHub
+        </a>
+        <a href="https://huggingface.co/spaces/fabriziosalmi/txt2vst" class="btn-primary" style="background:linear-gradient(135deg,#ff9d00,#ffcd00);color:#000;">
+          🤗 Try on HuggingFace
         </a>
         <a href="#archetypes" class="btn-ghost">Explore Archetypes <ChevronDown size={16} /></a>
       </div>
@@ -382,16 +385,26 @@ const iconMap: Record<string, any> = {
     <div class="container cta-inner">
       <h2 class="cta-title">Ready to forge?</h2>
       <p class="section-sub" style="margin-bottom:2rem;">Clone. Describe. Build. Ship.</p>
-      <a href="https://github.com/fabriziosalmi/txt2vst" class="btn-primary btn-lg">
-        <Github size={20} /> Get Started on GitHub <ArrowRight size={18} />
-      </a>
+      <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+        <a href="https://github.com/fabriziosalmi/txt2vst" class="btn-primary btn-lg">
+          <Github size={20} /> Get Started on GitHub <ArrowRight size={18} />
+        </a>
+        <a href="https://huggingface.co/spaces/fabriziosalmi/txt2vst" class="btn-primary btn-lg" style="background:linear-gradient(135deg,#ff9d00,#ffcd00);color:#000;">
+          🤗 Try Online — No Install
+        </a>
+      </div>
     </div>
   </section>
 
   <footer>
     <div class="container">
       <p>Made by <a href="https://github.com/fabriziosalmi">fabriziosalmi</a></p>
-      <p class="footer-sub">txt2vst.com &mdash; From text to sound, no friction, no limits.</p>
+      <p class="footer-sub" style="margin-top:0.6rem;">
+        <a href="https://github.com/fabriziosalmi/txt2vst">GitHub</a> &middot;
+        <a href="https://huggingface.co/spaces/fabriziosalmi/txt2vst">HuggingFace Space</a> &middot;
+        <a href="https://huggingface.co/datasets/fabriziosalmi/txt2vst">Dataset</a>
+      </p>
+      <p class="footer-sub">txt2vst &mdash; From text to sound, no friction, no limits.</p>
     </div>
   </footer>
 
