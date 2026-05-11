@@ -130,83 +130,91 @@ EXAMPLES = [
     "groovebox called NeonPulse with kick snare hats bass and pad, delay reverb eq, matrix theme",
 ]
 
-# ── Gradio UI ─────────────────────────────────────────────────────────────────
+# ── Gradio UI — HuggingFace native style ──────────────────────────────────────
 
-DESCRIPTION = """# txt2vst
+DESCRIPTION = """<div style="text-align:center;margin-bottom:1rem;">
+<h1 style="font-size:2rem;font-weight:700;margin:0;">🎹 txt2vst</h1>
+<p style="color:#6b7280;margin:0.3rem 0 0;font-size:1.05rem;">Text → VST3 Plugin — describe your instrument, download the project, build in one command.</p>
+</div>
 
-**Text to VST3 Plugin in One Command**
-
-Describe your dream instrument in natural language. Get a complete VST3 project ready to build.
-
-**Engine:** 16 voice archetypes / 8 FX processors / 24 UI themes / 7 mastering presets / 240M+ combinations
-
-**How it works:**
-1. Describe your plugin below
-2. Download the project ZIP
-3. Run `chmod +x build.sh && ./build.sh`
-4. Restart your DAW — your plugin is ready
+<div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.82rem;">
+<span style="background:#fef3c7;color:#92400e;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">16 Voices</span>
+<span style="background:#dbeafe;color:#1e40af;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">8 FX</span>
+<span style="background:#ede9fe;color:#5b21b6;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">24 Themes</span>
+<span style="background:#d1fae5;color:#065f46;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">7 Mastering</span>
+<span style="background:#fee2e2;color:#991b1b;padding:0.25rem 0.7rem;border-radius:9999px;font-weight:500;">240M+ Combos</span>
+</div>
 """
 
 with gr.Blocks(
     title="txt2vst — Text to VST in One Command",
-    theme=gr.themes.Soft(
-        primary_hue="emerald",
-        secondary_hue="cyan",
-        neutral_hue="slate",
-        font=gr.themes.GoogleFont("Inter"),
-        font_mono=gr.themes.GoogleFont("JetBrains Mono"),
+    theme=gr.themes.Default(
+        primary_hue="amber",
+        secondary_hue="yellow",
+        neutral_hue="gray",
+        font=gr.themes.GoogleFont("Source Sans Pro"),
+        font_mono=gr.themes.GoogleFont("IBM Plex Mono"),
+        radius_size=gr.themes.sizes.radius_md,
     ),
     fill_width=True,
     css="""
-    .gradio-container { max-width: 960px !important; margin: 0 auto !important; }
-    #spec-output textarea { font-family: 'JetBrains Mono', monospace !important; font-size: 0.85rem !important; }
-    .prose h1 { font-size: 2.2rem !important; font-weight: 800 !important; }
-    .prose strong { color: var(--body-text-color) !important; }
+    .gradio-container { max-width: 860px !important; margin: 0 auto !important; padding: 1.5rem !important; }
+    .gr-button-primary { background: linear-gradient(to bottom right, #f59e0b, #f97316) !important;
+        border: none !important; color: white !important; font-weight: 600 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; }
+    .gr-button-primary:hover { filter: brightness(1.05) !important; transform: translateY(-1px) !important; }
+    #spec-output textarea { font-family: 'IBM Plex Mono', monospace !important; font-size: 0.82rem !important;
+        background: #1e1e2e !important; color: #a6e3a1 !important; border-radius: 8px !important; }
+    .gr-examples .gr-sample-textbox { font-size: 0.82rem !important; }
+    footer { display: none !important; }
     """
 ) as demo:
-    gr.Markdown(DESCRIPTION)
+    gr.HTML(DESCRIPTION)
+
+    with gr.Group():
+        with gr.Row(equal_height=True):
+            prompt_input = gr.Textbox(
+                label="Describe your VST plugin",
+                placeholder="drum machine with kick snare hats, acid bass, delay and reverb, neon theme, punchy mastering",
+                lines=2,
+                scale=5,
+            )
+            generate_btn = gr.Button("⚡ Generate", variant="primary", scale=1, min_width=140)
 
     with gr.Row():
-        prompt_input = gr.Textbox(
-            label="Describe your VST plugin",
-            placeholder="e.g., drum machine with kick snare hats, acid bass, delay and reverb, punchy mastering",
-            lines=3,
-            scale=4,
+        with gr.Column(scale=3):
+            spec_output = gr.Code(
+                label="spec.json",
+                language="json",
+                lines=18,
+                elem_id="spec-output",
+            )
+        with gr.Column(scale=1):
+            zip_output = gr.File(label="📦 Project ZIP")
+            gr.Markdown("""
+<div style="font-size:0.78rem;color:#6b7280;line-height:1.5;margin-top:0.5rem;">
+<strong>After download:</strong><br/>
+<code style="font-size:0.75rem;">chmod +x build.sh && ./build.sh</code><br/>
+Restart DAW → plugin ready.
+</div>""")
+
+    with gr.Accordion("💡 Try these examples", open=False):
+        gr.Examples(
+            examples=[[e] for e in EXAMPLES],
+            inputs=[prompt_input],
+            label="",
         )
-        generate_btn = gr.Button("Generate", variant="primary", scale=1, min_width=120)
 
-    with gr.Row():
-        spec_output = gr.Code(
-            label="Generated spec.json",
-            language="json",
-            lines=20,
-            elem_id="spec-output",
-        )
+    generate_btn.click(fn=generate_spec, inputs=[prompt_input], outputs=[spec_output, zip_output])
+    prompt_input.submit(fn=generate_spec, inputs=[prompt_input], outputs=[spec_output, zip_output])
 
-    zip_output = gr.File(label="Download Project ZIP")
-
-    gr.Examples(
-        examples=[[e] for e in EXAMPLES],
-        inputs=[prompt_input],
-    )
-
-    generate_btn.click(
-        fn=generate_spec,
-        inputs=[prompt_input],
-        outputs=[spec_output, zip_output],
-    )
-    prompt_input.submit(
-        fn=generate_spec,
-        inputs=[prompt_input],
-        outputs=[spec_output, zip_output],
-    )
-
-    gr.Markdown("""
----
-**Links:** [GitHub](https://github.com/fabriziosalmi/txt2vst) | [Website](https://txt2vst.com) | [Dataset](https://huggingface.co/datasets/fabriziosalmi/txt2vst)
-
-*16 voices + 8 FX + 24 themes + 7 mastering = 240M+ unique combinations. Zero ML, pure structured generation.*
-""")
+    gr.HTML("""<div style="text-align:center;margin-top:1rem;padding-top:0.75rem;border-top:1px solid #e5e7eb;font-size:0.78rem;color:#9ca3af;">
+<a href="https://github.com/fabriziosalmi/txt2vst" style="color:#6b7280;text-decoration:none;">GitHub</a> ·
+<a href="https://txt2vst.com" style="color:#6b7280;text-decoration:none;">Website</a> ·
+<a href="https://huggingface.co/datasets/fabriziosalmi/txt2vst" style="color:#6b7280;text-decoration:none;">Dataset</a>
+&nbsp;—&nbsp; Zero ML, pure structured generation. 240M+ unique instruments.
+</div>""")
 
 if __name__ == "__main__":
     demo.launch()
+
