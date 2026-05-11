@@ -1,6 +1,32 @@
+# Build artifacts
 build/
-.DS_Store
 *.o
 *.a
-/output/
+*.dylib
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
 __pycache__/
+*.pyc
+*.egg-info/
+dist/
+
+# Generated output
+/output/
+
+# Compiled test binary
+dsplib/test_voices
+
+# Large dataset (use generate_dataset.py to rebuild)
+dataset/train.jsonl
+
+# Node
+node_modules/
+
+# IDE
+.idea/
+*.swp
+*.swo
