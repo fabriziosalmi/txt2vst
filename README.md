@@ -4,7 +4,7 @@
 
 ### Text to VST in One Command
 
-*Generate production-grade VST3/AU instruments from natural language. 2.7B+ unique combinations.*
+*Generate VST3/AU instruments from natural language. 2.7B+ unique combinations.*
 
 [![DSP Tests](https://img.shields.io/badge/Occam_tests-46%2F46-brightgreen?style=for-the-badge)](https://github.com/fabriziosalmi/txt2vst)
 [![Archetypes](https://img.shields.io/badge/archetypes-16+8-blue?style=for-the-badge)](https://github.com/fabriziosalmi/txt2vst)
