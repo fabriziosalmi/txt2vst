@@ -54,8 +54,12 @@ def gen_cmake(spec: dict) -> str:
             JUCE_WEB_BROWSER=0
             JUCE_USE_CURL=0
             JUCE_VST3_CAN_REPLACE_VST2=0
-            JUCE_DISPLAY_SPLASH_SCREEN=0
             JUCE_USE_OGGVORBIS=0
+        )
+
+        # Suppress harmless signedness warnings in generated sequencer code
+        target_compile_options({p['name']} PRIVATE
+            -Wno-sign-conversion -Wno-overloaded-virtual
         )
 
         juce_generate_juce_header({p['name']})
