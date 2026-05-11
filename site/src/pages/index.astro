@@ -19,6 +19,9 @@ const archetypes = [
   { name: "Organ", engine: "9-drawbar harmonics + rotary speaker sim", cpu: "24ns", pct: "0.10%", icon: "keyboard" },
   { name: "FM Synth", engine: "2-op FM with self-feedback + index env", cpu: "8ns", pct: "0.03%", icon: "bellring" },
   { name: "Noise", engine: "White/pink + SVF filter + Paul Kellet", cpu: "6ns", pct: "0.03%", icon: "cloudfog" },
+  { name: "String", engine: "4 detuned saws + pitch drift + SVF LP", cpu: "14ns", pct: "0.06%", icon: "waves" },
+  { name: "Brass", engine: "Pulse + PWM + attack swell + DC blocker", cpu: "8ns", pct: "0.04%", icon: "radio" },
+  { name: "Sub Bass", engine: "Sine + harmonics + soft saturation", cpu: "4ns", pct: "0.02%", icon: "disc" },
 ];
 
 const fxTypes = [
@@ -27,6 +30,9 @@ const fxTypes = [
   { name: "Chorus", engine: "Dual LFO modulated delay, stereo", icon: "mic2" },
   { name: "Compressor", engine: "Feed-forward, attack/release, makeup", icon: "gauge" },
   { name: "Distortion", engine: "Asymmetric tube-style soft clip", icon: "flame" },
+  { name: "Phaser", engine: "4-stage stereo allpass + LFO sweep", icon: "repeat" },
+  { name: "EQ", engine: "3-band: low/mid-para/high shelf", icon: "gauge" },
+  { name: "Gate", engine: "Envelope follower + threshold + hold", icon: "timer" },
 ];
 
 const themes = [
@@ -35,6 +41,9 @@ const themes = [
   { name: "Ember", colors: ["#140a08","#261410","#ff6b35"] },
   { name: "Frost", colors: ["#080c14","#101828","#5ebaff"] },
   { name: "Neon", colors: ["#0a0010","#180028","#ff00ff"] },
+  { name: "Vapor", colors: ["#0a0818","#1a1030","#ff71ce"] },
+  { name: "Industrial", colors: ["#0c0c0c","#1a1a1a","#ff8800"] },
+  { name: "Solar", colors: ["#100c04","#201808","#ffc107"] },
 ];
 
 const guardrails = [
@@ -60,7 +69,7 @@ const iconMap: Record<string, any> = {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>txt2vst — Text to VST in One Command</title>
-  <meta name="description" content="Generate production-grade VST3/AU instruments from natural language. 13 voice + 5 FX archetypes, 31/31 Occam guardrails, 5 UI themes." />
+  <meta name="description" content="Generate production-grade VST3/AU instruments from natural language. 16 voice + 8 FX archetypes, 40/40 Occam guardrails, 8 UI themes." />
   <meta property="og:title" content="txt2vst — Text to VST" />
   <meta property="og:description" content="Generate production VST instruments from text. 10 archetypes, Occam guardrails." />
   <meta property="og:type" content="website" />
@@ -76,10 +85,10 @@ const iconMap: Record<string, any> = {
     <div class="hero-glow"></div>
     <div class="hero-grid"></div>
     <div class="hero-content">
-      <div class="badge"><ShieldCheck size={14} /> Open Source &middot; 13 Voices + 5 FX &middot; 31/31 Tests</div>
+      <div class="badge"><ShieldCheck size={14} /> Open Source &middot; 16 Voices + 8 FX &middot; 40/40 Tests</div>
       <h1>txt<span class="accent">2</span>vst</h1>
       <p class="tagline">Text &rarr; VST in One Command</p>
-      <p class="subtitle">Generate production-grade VST3/AU instruments from natural language.<br/>13 voice engines. 5 FX processors. 5 UI themes. Zero friction.</p>
+      <p class="subtitle">Generate production-grade VST3/AU instruments from natural language.<br/>16 voice engines. 8 FX processors. 8 UI themes. Zero friction.</p>
 
       <div class="terminal">
         <div class="terminal-bar">
@@ -99,12 +108,12 @@ const iconMap: Record<string, any> = {
       <div class="hero-stats">
         <div class="stat">
           <span class="stat-icon"><AudioLines size={20} /></span>
-          <span class="stat-num">13+5</span>
+          <span class="stat-num">16+8</span>
           <span class="stat-lbl">DSP Archetypes</span>
         </div>
         <div class="stat">
           <span class="stat-icon"><ShieldCheck size={20} /></span>
-          <span class="stat-num">31/31</span>
+          <span class="stat-num">40/40</span>
           <span class="stat-lbl">Safety Tests</span>
         </div>
         <div class="stat">
@@ -168,7 +177,7 @@ const iconMap: Record<string, any> = {
   <!-- ARCHETYPES -->
   <section class="section section-dark" id="archetypes">
     <div class="container">
-      <h2 class="section-title">13 Voice Archetypes</h2>
+      <h2 class="section-title">16 Voice Archetypes</h2>
       <p class="section-sub">Each voice gets a purpose-built, production-grade synthesis engine &mdash; not a generic fallback.</p>
       <div class="arch-grid">
         {archetypes.map(a => {
@@ -210,7 +219,7 @@ const iconMap: Record<string, any> = {
           <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
           <span class="terminal-title">test results</span>
         </div>
-        <pre><code><span class="out">  31/31 All Occam guardrails satisfied!</span>
+        <pre><code><span class="out">  40/40 All Occam guardrails satisfied!</span>
 <span class="cm"># cd dsplib && g++ -std=c++17 -O2 -I voices \</span>
 <span class="cm">#   -o test tests/test_voices.cpp && ./test</span></code></pre>
       </div>
@@ -220,7 +229,7 @@ const iconMap: Record<string, any> = {
   <!-- CTA -->
   <section class="section" id="fx">
     <div class="container">
-      <h2 class="section-title">5 FX Processors</h2>
+      <h2 class="section-title">8 FX Processors</h2>
       <p class="section-sub">Master bus effects, routed per-channel or globally. All Occam-safe.</p>
       <div class="fx-grid">
         {fxTypes.map(f => {
@@ -239,7 +248,7 @@ const iconMap: Record<string, any> = {
 
   <section class="section section-dark" id="themes">
     <div class="container">
-      <h2 class="section-title">5 UI Themes</h2>
+      <h2 class="section-title">8 UI Themes</h2>
       <p class="section-sub">Set <code style="color:var(--accent);">"theme": "acid"</code> in your spec and the generated plugin gets a matching color palette.</p>
       <div class="theme-grid">
         {themes.map(t => (
