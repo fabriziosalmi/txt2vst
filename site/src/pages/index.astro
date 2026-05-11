@@ -263,6 +263,99 @@ const iconMap: Record<string, any> = {
     </div>
   </section>
 
+  <!-- GENERATOR -->
+  <section class="section" id="generator">
+    <div class="container">
+      <h2 class="section-title">Forge Your Plugin</h2>
+      <p class="section-sub">Configure your instrument visually. Download the spec, run two commands, done.</p>
+
+      <div class="gen-panel">
+        <!-- Plugin Name -->
+        <div class="gen-row">
+          <label class="gen-label">Plugin Name</label>
+          <input type="text" id="gen-name" class="gen-input" value="MyPlugin" spellcheck="false" />
+          <button class="btn-random" id="btn-random" title="Randomize">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+            Random
+          </button>
+        </div>
+
+        <!-- Voices -->
+        <div class="gen-group">
+          <label class="gen-label">Voices <span class="gen-count" id="voice-count">0</span></label>
+          <div class="gen-chips" id="voice-chips"></div>
+        </div>
+
+        <!-- FX -->
+        <div class="gen-group">
+          <label class="gen-label">FX Chain <span class="gen-count" id="fx-count">0</span></label>
+          <div class="gen-chips" id="fx-chips"></div>
+        </div>
+
+        <!-- Theme + Mastering knobs -->
+        <div class="gen-knobs-row">
+          <div class="knob-group">
+            <label class="gen-label">Theme</label>
+            <div class="knob-wrap" id="knob-theme">
+              <svg class="knob-svg" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" class="knob-track"/>
+                <circle cx="40" cy="40" r="34" class="knob-arc" id="knob-theme-arc"/>
+                <circle cx="40" cy="40" r="26" class="knob-body"/>
+                <line x1="40" y1="40" x2="40" y2="18" class="knob-pointer" id="knob-theme-ptr"/>
+              </svg>
+              <div class="knob-val" id="knob-theme-val">midnight</div>
+            </div>
+          </div>
+          <div class="knob-group">
+            <label class="gen-label">Mastering</label>
+            <div class="knob-wrap" id="knob-master">
+              <svg class="knob-svg" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" class="knob-track"/>
+                <circle cx="40" cy="40" r="34" class="knob-arc" id="knob-master-arc"/>
+                <circle cx="40" cy="40" r="26" class="knob-body"/>
+                <line x1="40" y1="40" x2="40" y2="18" class="knob-pointer" id="knob-master-ptr"/>
+              </svg>
+              <div class="knob-val" id="knob-master-val">bypass</div>
+            </div>
+          </div>
+          <div class="knob-group">
+            <label class="gen-label">Channels</label>
+            <div class="knob-wrap" id="knob-channels">
+              <svg class="knob-svg" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" class="knob-track"/>
+                <circle cx="40" cy="40" r="34" class="knob-arc" id="knob-ch-arc"/>
+                <circle cx="40" cy="40" r="26" class="knob-body"/>
+                <line x1="40" y1="40" x2="40" y2="18" class="knob-pointer" id="knob-ch-ptr"/>
+              </svg>
+              <div class="knob-val" id="knob-ch-val">4</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output -->
+        <div class="gen-output">
+          <div class="terminal" style="margin:0">
+            <div class="terminal-bar">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="terminal-title">spec.json preview</span>
+            </div>
+            <pre><code id="spec-preview" class="out">{ }</code></pre>
+          </div>
+          <div class="gen-actions">
+            <button class="btn-primary" id="btn-download">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Download spec.json
+            </button>
+            <button class="btn-secondary" id="btn-copy-cmd">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              Copy Commands
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="section section-cta">
     <div class="container cta-inner">
       <h2 class="cta-title">Ready to forge?</h2>
@@ -578,11 +671,342 @@ const iconMap: Record<string, any> = {
   footer a:hover { text-decoration: underline; }
   .footer-sub { font-size: 0.78rem; margin-top: 0.3rem; opacity: 0.7; }
 
+  /* ─── GENERATOR ─── */
+  .gen-panel {
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    backdrop-filter: blur(12px);
+  }
+  .gen-row {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .gen-label {
+    font-size: 0.82rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--muted);
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+  .gen-count {
+    background: var(--accent); color: var(--bg);
+    font-size: 0.7rem; font-weight: 700;
+    padding: 0.1rem 0.45rem; border-radius: 8px;
+    min-width: 1.2rem; text-align: center;
+  }
+  .gen-input {
+    flex: 1; background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.6rem 1rem; color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.95rem;
+    outline: none; transition: border-color 0.2s;
+  }
+  .gen-input:focus { border-color: var(--accent); }
+  .btn-random {
+    display: flex; align-items: center; gap: 0.4rem;
+    background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent), #fff 30%));
+    color: var(--bg); border: none; border-radius: 8px;
+    padding: 0.6rem 1.1rem; font-weight: 600; font-size: 0.82rem;
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.2s;
+    white-space: nowrap;
+  }
+  .btn-random:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(0,212,160,0.3); }
+  .btn-random:active { transform: scale(0.97); }
+  .gen-group { margin-bottom: 1.5rem; }
+  .gen-chips {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+  }
+  .gen-chip {
+    padding: 0.4rem 0.9rem; border-radius: 20px;
+    font-size: 0.78rem; font-weight: 500;
+    border: 1px solid var(--border); background: rgba(255,255,255,0.03);
+    color: var(--muted); cursor: pointer;
+    transition: all 0.2s; user-select: none;
+  }
+  .gen-chip:hover { border-color: var(--accent); color: var(--text); }
+  .gen-chip.active {
+    background: rgba(0,212,160,0.12); border-color: var(--accent);
+    color: var(--accent); font-weight: 600;
+    box-shadow: 0 0 12px rgba(0,212,160,0.15);
+  }
+  .gen-knobs-row {
+    display: flex; gap: 2.5rem; justify-content: center;
+    margin: 2rem 0; flex-wrap: wrap;
+  }
+  .knob-group { text-align: center; }
+  .knob-wrap {
+    position: relative; width: 80px; height: 80px;
+    margin: 0 auto; cursor: grab;
+  }
+  .knob-wrap:active { cursor: grabbing; }
+  .knob-svg { width: 80px; height: 80px; }
+  .knob-track {
+    fill: none; stroke: rgba(255,255,255,0.06);
+    stroke-width: 4; stroke-linecap: round;
+    stroke-dasharray: 175; stroke-dashoffset: 44;
+    transform: rotate(135deg); transform-origin: 50% 50%;
+  }
+  .knob-arc {
+    fill: none; stroke: var(--accent); stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 175; stroke-dashoffset: 175;
+    transform: rotate(135deg); transform-origin: 50% 50%;
+    transition: stroke-dashoffset 0.15s;
+    filter: drop-shadow(0 0 4px var(--accent));
+  }
+  .knob-body {
+    fill: rgba(255,255,255,0.04);
+    stroke: rgba(255,255,255,0.1); stroke-width: 1.5;
+    transition: fill 0.2s;
+  }
+  .knob-wrap:hover .knob-body { fill: rgba(255,255,255,0.07); }
+  .knob-pointer {
+    stroke: var(--accent); stroke-width: 2.5;
+    stroke-linecap: round; transition: transform 0.15s;
+    transform-origin: 40px 40px;
+    filter: drop-shadow(0 0 3px var(--accent));
+  }
+  .knob-val {
+    font-size: 0.72rem; font-weight: 600;
+    color: var(--text); margin-top: 0.3rem;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .gen-output { margin-top: 1.5rem; }
+  .gen-actions {
+    display: flex; gap: 0.8rem; margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.65rem 1.2rem; color: var(--text);
+    font-weight: 500; font-size: 0.85rem; cursor: pointer;
+    transition: all 0.2s; text-decoration: none;
+  }
+  .btn-secondary:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--accent);
+  }
+
   @media (max-width: 640px) {
     .hero-stats { gap: 1.2rem; }
     .pipe-arrow { display: none; }
     .pipeline { flex-direction: column; gap: 0.75rem; }
     .pipe-card { width: 100%; }
     .arch-grid { grid-template-columns: 1fr; }
+    .gen-knobs-row { gap: 1.5rem; }
+    .gen-row { flex-direction: column; align-items: stretch; }
   }
 </style>
+
+<script>
+(function() {
+  const VOICES = [
+    {id:"kick",t:"drum"},{id:"snare",t:"drum"},{id:"hats",t:"drum"},
+    {id:"tom",t:"drum"},{id:"perc",t:"drum"},{id:"clap",t:"drum"},
+    {id:"bass303",t:"pitched",label:"Bass 303"},{id:"lead",t:"pitched"},
+    {id:"pad",t:"pitched"},{id:"pluck",t:"pitched"},{id:"organ",t:"pitched"},
+    {id:"fm_synth",t:"pitched",label:"FM Synth"},{id:"noise",t:"pitched"},
+    {id:"string",t:"pitched"},{id:"brass",t:"pitched"},
+    {id:"sub_bass",t:"pitched",label:"Sub Bass"}
+  ];
+  const FX = ["delay","reverb","chorus","compressor","distortion","phaser","eq","gate"];
+  const THEMES = ["midnight","acid","ember","frost","neon","vapor","industrial","solar"];
+  const MASTERS = ["bypass","transparent","punch","wet","radio","distorted","wide"];
+  const NAMES = ["AcidBox","NeuroSynth","VoidDrum","SubStation","OrbitPad","CrushLab",
+                  "NeonPulse","FrostBite","GlitchKit","SolarWave","BrassHammer","HazeEngine",
+                  "DeepRoot","QuantumBeat","CrystalFM","DustKick","TubeForge","MoonBass"];
+
+  let selectedVoices = new Set();
+  let selectedFx = new Set();
+  let themeIdx = 0, masterIdx = 0, chCount = 4;
+
+  // ── Chip builders ──
+  function buildChips(containerId, items, selectedSet, countId) {
+    const c = document.getElementById(containerId);
+    c.innerHTML = '';
+    items.forEach(item => {
+      const chip = document.createElement('span');
+      chip.className = 'gen-chip' + (selectedSet.has(item.id || item) ? ' active' : '');
+      chip.textContent = (item.label || item.id || item).replace(/_/g,' ');
+      chip.addEventListener('click', () => {
+        const key = item.id || item;
+        if (selectedSet.has(key)) selectedSet.delete(key);
+        else selectedSet.add(key);
+        chip.classList.toggle('active');
+        document.getElementById(countId).textContent = selectedSet.size;
+        updatePreview();
+      });
+      c.appendChild(chip);
+    });
+  }
+
+  // ── Knob logic ──
+  function updateKnob(arcId, ptrId, valId, index, total, values) {
+    const frac = index / (total - 1);
+    const arcLen = 175;
+    const offset = arcLen - frac * (arcLen - 44);
+    document.getElementById(arcId).style.strokeDashoffset = offset;
+    const angle = -135 + frac * 270;
+    document.getElementById(ptrId).style.transform = `rotate(${angle}deg)`;
+    document.getElementById(valId).textContent = values[index];
+  }
+
+  function attachKnob(wrapId, arcId, ptrId, valId, values, getIdx, setIdx) {
+    const el = document.getElementById(wrapId);
+    let dragging = false, startY = 0, startIdx = 0;
+    el.addEventListener('mousedown', e => {
+      dragging = true; startY = e.clientY; startIdx = getIdx(); e.preventDefault();
+    });
+    el.addEventListener('wheel', e => {
+      e.preventDefault();
+      let idx = getIdx() + (e.deltaY > 0 ? 1 : -1);
+      idx = Math.max(0, Math.min(idx, values.length - 1));
+      setIdx(idx);
+      updateKnob(arcId, ptrId, valId, idx, values.length, values);
+      updatePreview();
+    });
+    window.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const dy = startY - e.clientY;
+      let idx = startIdx + Math.round(dy / 20);
+      idx = Math.max(0, Math.min(idx, values.length - 1));
+      setIdx(idx);
+      updateKnob(arcId, ptrId, valId, idx, values.length, values);
+      updatePreview();
+    });
+    window.addEventListener('mouseup', () => { dragging = false; });
+    updateKnob(arcId, ptrId, valId, getIdx(), values.length, values);
+  }
+
+  // ── Spec builder ──
+  function buildSpec() {
+    const name = document.getElementById('gen-name').value.replace(/[^a-zA-Z0-9]/g,'') || 'MyPlugin';
+    const voices = [...selectedVoices];
+    const theme = THEMES[themeIdx];
+    const master = MASTERS[masterIdx];
+
+    const channels = [];
+    const voiceSpecs = [];
+    let midiNote = 36, midiCh = 2;
+    const voiceInfo = Object.fromEntries(VOICES.map(v => [v.id, v]));
+
+    voices.forEach(vid => {
+      const v = voiceInfo[vid];
+      if (!v) return;
+      const chName = (v.label || v.id).replace(/[_ ]/g,'');
+      if (v.t === 'drum') {
+        channels.push({name: chName, type: 'drum', midi: midiNote++});
+      } else {
+        channels.push({name: chName, type: 'pitched', midi_ch: midiCh++});
+      }
+      voiceSpecs.push({name: chName, params: getDefaultParams(vid)});
+    });
+
+    const prefix = name.substring(0,3).toUpperCase();
+    const code = name.substring(0,4);
+    const features = {
+      sequencer: channels.some(c => c.type === 'drum'),
+      swing: false,
+      sidechain: false,
+      master_fx: [...selectedFx]
+    };
+    if (master !== 'bypass') features.mastering = master;
+
+    const spec = {
+      plugin: { name, version: '0.1.0', company: 'txt2vst', prefix, mfr_code: 'Tx2v', code, ui: [1031,625] },
+      channels, voices: voiceSpecs, features
+    };
+    if (theme !== 'midnight') spec.plugin.theme = theme;
+    return spec;
+  }
+
+  function getDefaultParams(archId) {
+    const map = {
+      kick:['tune','decay','punch','sub'], snare:['tune','decay','snap','noise'],
+      hats:['tune','decay','tone','body'], tom:['tune','decay','pitchenv','attack'],
+      perc:['tune','decay','detune','drive'], clap:['decay','spread','attack'],
+      bass303:['cutoff','reso','envmod','decay','accent'], lead:['cutoff','reso','pw','decay','detune'],
+      pad:['cutoff','reso','attack','release','detune'], pluck:['decay','bright','body'],
+      organ:['decay','rotary'], fm_synth:['ratio','index','decay','feedback'],
+      noise:['cutoff','reso','decay','color'],
+      string:['cutoff','reso','attack','release','detune'],
+      brass:['cutoff','reso','attack','decay','bright'],
+      sub_bass:['decay','sub','harmonics','drive']
+    };
+    return map[archId] || ['decay'];
+  }
+
+  function updatePreview() {
+    const spec = buildSpec();
+    document.getElementById('spec-preview').textContent = JSON.stringify(spec, null, 2);
+  }
+
+  // ── Random ──
+  function randomize() {
+    selectedVoices.clear();
+    selectedFx.clear();
+    const nVoices = 2 + Math.floor(Math.random() * 5);
+    const shuffled = [...VOICES].sort(() => Math.random() - 0.5);
+    for (let i = 0; i < Math.min(nVoices, shuffled.length); i++) selectedVoices.add(shuffled[i].id);
+    const nFx = Math.floor(Math.random() * 4);
+    const fxShuf = [...FX].sort(() => Math.random() - 0.5);
+    for (let i = 0; i < nFx; i++) selectedFx.add(fxShuf[i]);
+    themeIdx = Math.floor(Math.random() * THEMES.length);
+    masterIdx = Math.floor(Math.random() * MASTERS.length);
+    chCount = selectedVoices.size;
+    document.getElementById('gen-name').value = NAMES[Math.floor(Math.random() * NAMES.length)];
+    buildChips('voice-chips', VOICES, selectedVoices, 'voice-count');
+    buildChips('fx-chips', FX, selectedFx, 'fx-count');
+    document.getElementById('voice-count').textContent = selectedVoices.size;
+    document.getElementById('fx-count').textContent = selectedFx.size;
+    updateKnob('knob-theme-arc','knob-theme-ptr','knob-theme-val', themeIdx, THEMES.length, THEMES);
+    updateKnob('knob-master-arc','knob-master-ptr','knob-master-val', masterIdx, MASTERS.length, MASTERS);
+    updatePreview();
+  }
+
+  // ── Download ──
+  function downloadSpec() {
+    const spec = buildSpec();
+    const blob = new Blob([JSON.stringify(spec, null, 2)], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = spec.plugin.name.toLowerCase() + '.spec.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function copyCommands() {
+    const name = document.getElementById('gen-name').value || 'MyPlugin';
+    const fn = name.toLowerCase() + '.spec.json';
+    const cmds = `python3 forge.py ${fn} output/${name}\ncd output/${name} && cmake -B build && cmake --build build`;
+    navigator.clipboard.writeText(cmds).then(() => {
+      const btn = document.getElementById('btn-copy-cmd');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Copied!';
+      setTimeout(() => { btn.innerHTML = orig; }, 1500);
+    });
+  }
+
+  // ── Init ──
+  document.addEventListener('DOMContentLoaded', () => {
+    buildChips('voice-chips', VOICES, selectedVoices, 'voice-count');
+    buildChips('fx-chips', FX, selectedFx, 'fx-count');
+    attachKnob('knob-theme','knob-theme-arc','knob-theme-ptr','knob-theme-val',
+               THEMES, () => themeIdx, i => { themeIdx = i; });
+    attachKnob('knob-master','knob-master-arc','knob-master-ptr','knob-master-val',
+               MASTERS, () => masterIdx, i => { masterIdx = i; });
+    const CH_VALS = ['1','2','3','4','5','6','7','8'];
+    attachKnob('knob-channels','knob-ch-arc','knob-ch-ptr','knob-ch-val',
+               CH_VALS, () => chCount - 1, i => { chCount = i + 1; });
+    document.getElementById('btn-random').addEventListener('click', randomize);
+    document.getElementById('btn-download').addEventListener('click', downloadSpec);
+    document.getElementById('btn-copy-cmd').addEventListener('click', copyCommands);
+    document.getElementById('gen-name').addEventListener('input', updatePreview);
+    updatePreview();
+  });
+})();
+</script>
