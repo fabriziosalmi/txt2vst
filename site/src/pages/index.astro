@@ -83,6 +83,7 @@ const iconMap: Record<string, any> = {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'" />
   <title>txt2vst — Text to VST in One Command</title>
   <meta name="description" content="Generate VST3/AU instruments from natural language. 16 voice + 8 FX archetypes, 46/46 Occam guardrails, 23 UI themes." />
   <meta property="og:title" content="txt2vst — Text to VST" />
@@ -405,6 +406,7 @@ const iconMap: Record<string, any> = {
         <a href="https://huggingface.co/datasets/fabriziosalmi/txt2vst">Dataset</a>
       </p>
       <p class="footer-sub">txt2vst &mdash; From text to sound, no friction, no limits.</p>
+      <p class="footer-sub"><a href="/privacy">Privacy &amp; legal</a> &middot; Publisher: Fabrizio Salmi &middot; <a href="mailto:fabrizio.salmi@gmail.com">fabrizio.salmi@gmail.com</a></p>
     </div>
   </footer>
 
