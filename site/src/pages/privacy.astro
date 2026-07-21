@@ -1,8 +1,7 @@
 ---
 // Standalone privacy page for txt2vst.com (index.astro is a standalone page,
-// not layout-based, so this page ships its own shell). The home page loads
-// Google Fonts + jsDelivr (jszip); those are disclosed below. This page
-// itself loads no third-party resources.
+// not layout-based, so this page ships its own shell). Fonts and jszip are
+// self-hosted, so the whole site makes zero third-party requests.
 const title = "Privacy & legal — txt2vst";
 ---
 
@@ -46,18 +45,12 @@ const title = "Privacy & legal — txt2vst";
     </ul>
     <h2>Cookies &amp; device storage</h2>
     <p>This site sets <strong>no cookies</strong>. Any preference the tool remembers (such as the UI theme) is stored locally on your device and never sent to us.</p>
-    <h2>Third-party resources (disclosed)</h2>
-    <p>The home page currently loads two third-party resources, so following them sends your IP to those providers:</p>
-    <ul>
-      <li><strong>Google Fonts</strong> (Google Ireland/LLC) — the Inter &amp; JetBrains Mono web fonts from <code>fonts.googleapis.com</code> / <code>fonts.gstatic.com</code>.</li>
-      <li><strong>jsDelivr</strong> — the <code>jszip</code> library from <code>cdn.jsdelivr.net</code>, used to package the generated VST files in your browser.</li>
-    </ul>
-    <p class="muted">Both can be self-hosted to remove the third-party requests entirely — planned.</p>
+    <h2>Third-party resources</h2>
+    <p><strong>None loaded from third-party origins.</strong> Fonts, scripts, and images are served from this domain, so your browser does not fetch assets from external providers as part of normal page load. Note that our infrastructure providers (GitHub Pages and Cloudflare) still process requests to deliver the site and will receive your IP address. The web fonts (Inter and JetBrains Mono, SIL Open Font License 1.1) and the <code>jszip</code> library (dual-licensed MIT/GPLv3) are self-hosted copies.</p>
     <h2>Processors &amp; international transfers</h2>
     <ul>
       <li><strong>GitHub, Inc.</strong> (USA) — static hosting (GitHub Pages).</li>
       <li><strong>Cloudflare, Inc.</strong> (USA) — CDN, HTTPS and edge security.</li>
-      <li><strong>Google</strong> (fonts) and <strong>jsDelivr</strong> (library) — as above.</li>
     </ul>
     <p>Transfers to the USA are covered by the providers' DPAs and the EU–US Data Privacy Framework / Standard Contractual Clauses.</p>
     <h2>Your rights</h2>
@@ -67,9 +60,9 @@ const title = "Privacy & legal — txt2vst";
     <h2>Titolare del trattamento</h2>
     <p><strong>Fabrizio Salmi</strong> — Genova, Italia. Sito del progetto open-source txt2vst (personale, non commerciale). Contatto: <a href="mailto:fabrizio.salmi@gmail.com">fabrizio.salmi@gmail.com</a>.</p>
     <h2>Dati, cookie e terze parti</h2>
-    <p>IP e dati basilari della richiesta trattati in modo transitorio dall'hosting (legittimo interesse). <strong>Nessuna analitica, nessun account.</strong> Il sito <strong>non imposta cookie</strong>; eventuali preferenze (es. tema) restano sul tuo dispositivo. La home carica due risorse di terze parti — <strong>Google Fonts</strong> (<code>fonts.googleapis.com</code>/<code>gstatic.com</code>) e <strong>jsDelivr</strong> (libreria <code>jszip</code>) — quindi seguendole il tuo IP raggiunge quei fornitori; entrambe self-hostabili (previsto).</p>
+    <p>IP e dati basilari della richiesta trattati in modo transitorio dall'hosting (legittimo interesse). <strong>Nessuna analitica, nessun account.</strong> Il sito <strong>non imposta cookie</strong>; eventuali preferenze (es. tema) restano sul tuo dispositivo. <strong>Nessuna risorsa caricata da domini di terze parti</strong>: font e librerie sono ospitati su questo dominio, quindi il browser non scarica asset da provider esterni durante il normale caricamento della pagina (restano comunque coinvolti i fornitori di hosting/CDN indicati sotto).</p>
     <h2>Responsabili, trasferimenti e diritti</h2>
-    <p>Responsabili: GitHub, Inc. (USA, hosting), Cloudflare, Inc. (USA, CDN), Google (font), jsDelivr (libreria). Trasferimenti verso gli USA coperti da DPA e Data Privacy Framework UE–USA / SCC. Hai i diritti degli artt. 15–22 GDPR — <a href="mailto:fabrizio.salmi@gmail.com">fabrizio.salmi@gmail.com</a> — e puoi reclamare al <a href="https://www.garanteprivacy.it" target="_blank" rel="noopener">Garante</a>. Nessuna profilazione.</p>
+    <p>Responsabili: GitHub, Inc. (USA, hosting), Cloudflare, Inc. (USA, CDN). Trasferimenti verso gli USA coperti da DPA e Data Privacy Framework UE–USA / SCC. Hai i diritti degli artt. 15–22 GDPR — <a href="mailto:fabrizio.salmi@gmail.com">fabrizio.salmi@gmail.com</a> — e puoi reclamare al <a href="https://www.garanteprivacy.it" target="_blank" rel="noopener">Garante</a>. Nessuna profilazione.</p>
 
     <hr />
     <p class="muted">Publisher / Titolare: Fabrizio Salmi — Genoa, Italy — <a href="mailto:fabrizio.salmi@gmail.com">fabrizio.salmi@gmail.com</a></p>
