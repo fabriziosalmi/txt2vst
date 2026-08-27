@@ -5,6 +5,18 @@ import { Drum, Music, Radio, Disc3, Waves, HandMetal, Guitar, Piano, Wind, Spark
          Shield, ShieldCheck, Zap, Activity, Cpu,
          Github, ArrowRight, ChevronDown } from 'lucide-astro';
 
+// Self-hosted fonts (AGSSH AG-PRV-03 / AG-NET-01): Inter + JetBrains Mono are
+// bundled from @fontsource instead of Google Fonts — the family names match the
+// CSS below, so no style changes are needed.
+import '@fontsource/inter/300.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/800.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/600.css';
+
 const archetypes = [
   { name: "Kick", engine: "Dual envelope + pitch sweep + sub + drive", cpu: "16ns", pct: "0.07%", icon: "drum" },
   { name: "Snare", engine: "Body tone + bandpass noise + snap transient", cpu: "9ns", pct: "0.04%", icon: "disc" },
@@ -89,10 +101,8 @@ const iconMap: Record<string, any> = {
   <meta property="og:description" content="Generate production VST instruments from text. 10 archetypes, Occam guardrails." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://txt2vst.com" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300d4a0' stroke-width='2'><path d='M9 18V5l12-2v13'/><circle cx='6' cy='18' r='3'/><circle cx='18' cy='16' r='3'/></svg>" />
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script is:inline src="/vendor/jszip.min.js"></script>
 </head>
 <body>
 
