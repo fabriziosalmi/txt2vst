@@ -1,0 +1,14 @@
+# Servito come https://www.txt2vst.com/robots.txt
+#
+# Questo file deve esistere nell'origine: il dominio sta dietro Cloudflare, e
+# quando l'origine non serve un robots.txt Cloudflare risponde con il proprio,
+# gestito, che non dichiara nessuna sitemap. La sitemap del sito esiste ed e'
+# valida, ma senza questa riga non risulta dichiarata da nessuna parte.
+#
+# Il nome e' sitemap-index.xml, non sitemap.xml: lo genera cosi' l'integrazione
+# @astrojs/sitemap configurata in astro.config.mjs.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://www.txt2vst.com/sitemap-index.xml
