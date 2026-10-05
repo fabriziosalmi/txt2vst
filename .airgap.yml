@@ -1,0 +1,30 @@
+# .airgap.yml — AGSSH-STD-001 conformance declaration for www.txt2vst.com
+target_profile: Silver            # Bronze | Silver | Gold (cumulative)
+level: L2                         # L0 strict | L1 scoped-egress | L2 marketing
+
+surfaces:
+  - url: https://www.txt2vst.com/
+    kind: site
+    stateless: true               # static Astro build, no cookies (Tier-D anti-framing)
+
+backend: github-pages             # served via GitHub Pages behind Cloudflare
+
+dns:
+  zone: txt2vst.com               # CAA / DNSSEC checks
+
+pipeline:
+  enforce_ci_rules: false         # this is the web surface, not the runner's own CI
+
+allow:
+  connect:      []
+  storage:      []
+  embeds:       []
+  subresources:                   # current third-party assets (self-host to reach Gold/L0)
+    - cdn.jsdelivr.net
+    - fonts.googleapis.com
+    - fonts.gstatic.com
+
+waivers:
+  budget: { max_count: 3, max_weight: 6, max_window_days: 30 }
+
+deviations: []
